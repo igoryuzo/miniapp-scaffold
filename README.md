@@ -101,6 +101,20 @@ The notification system is built using Neynar. The main notification logic is in
 - `src/app/api/send-notification/route.ts` - API route for sending notifications
 - `src/app/api/store-notification-token/route.ts` - API route for storing notification tokens
 
+#### Neynar Webhook Configuration
+
+This scaffold uses Neynar for handling notifications, which requires a specific webhook URL configuration in your manifest file:
+
+1. Create a Neynar account and create a new Mini App at [https://neynar.com](https://neynar.com)
+2. Get your app-specific webhook URL from Neynar's dashboard (format: `https://api.neynar.com/f/app/{app-id}/event`)
+3. Update the `webhookUrl` in your `public/.well-known/farcaster.json` manifest file to use this Neynar endpoint:
+
+```json
+"webhookUrl": "https://api.neynar.com/f/app/YOUR-APP-ID-HERE/event"
+```
+
+This webhook URL is required for proper domain validation when users add your app in Warpcast.
+
 ### Data Storage
 
 Supabase is used for data persistence. The main database operations are in:
@@ -169,7 +183,7 @@ Example manifest:
     "buttonTitle": "Start Building",
     "splashImageUrl": "https://scaffold.wiki/images/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
-    "webhookUrl": "https://scaffold.wiki/api/webhook",
+    "webhookUrl": "https://api.neynar.com/f/app/YOUR-APP-ID-HERE/event",
     "subtitle": "Farcaster Mini App Starter Kit",
     "description": "Build Farcaster apps with auth and storage",
     "primaryCategory": "developer-tools",
@@ -277,3 +291,33 @@ MIT
 
 - [Farcaster Mini App Docs](https://miniapps.farcaster.xyz/)
 - [Neynar Documentation](https://docs.neynar.com/)
+
+## Troubleshooting
+
+### InvalidDomainManifest Error
+
+If you encounter the `AddFrame.InvalidDomainManifest: Invalid domain manifest` error when users try to add your app, check these common issues:
+
+1. **Domain Mismatch**: Ensure that the domain in your accountAssociation payload matches exactly with the domain your app is running on. For example, if your payload has `www.domain.com`, your app must run on `www.domain.com` (not just `domain.com`).
+
+2. **Webhook URL**: Make sure you're using the correct Neynar webhook URL in your manifest's `webhookUrl` field. It should be in the format:
+   ```
+   https://api.neynar.com/f/app/YOUR-APP-ID-HERE/event
+   ```
+
+3. **Manifest Formatting**: Ensure your farcaster.json file has no trailing whitespace or formatting issues.
+
+4. **Permissions**: Verify the `permissions` field in your manifest contains the required permissions.
+
+5. **Domain Verification**: Complete the domain verification process in Warpcast's developer tools to properly associate your domain with your Farcaster account.
+
+6. **Required Fields**: Make sure your manifest includes all required fields: version, permissions, notifications configuration, etc.
+
+### Notification Issues
+
+If notifications aren't working:
+
+1. Verify your Neynar API key is correctly set in your environment variables
+2. Ensure users have successfully added your app with notification permissions
+3. Check that the notification tokens are being properly stored in your database
+4. Review the Neynar dashboard for any API errors or rate limiting issues

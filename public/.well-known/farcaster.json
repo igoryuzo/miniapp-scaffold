@@ -13,7 +13,7 @@
     "buttonTitle": "Start Building",
     "splashImageUrl": "https://www.scaffold.wiki/images/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
-    "webhookUrl": "https://www.scaffold.wiki/api/webhook",
+    "webhookUrl": "https://api.neynar.com/f/app/3aa7041e-2f4b-4b5b-a63b-24869f48551f/event",
     "subtitle": "Farcaster Mini App Starter Kit",
     "description": "Build Farcaster apps with auth and storage",
     "primaryCategory": "developer-tools",
