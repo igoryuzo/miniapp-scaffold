@@ -129,11 +129,11 @@ Example manifest:
   "frame": {
     "version": "1",
     "name": "Mini App Scaffold",
-    "iconUrl": "https://scaffold.wiki/scaffolding-icon.png",
+    "iconUrl": "https://scaffold.wiki/images/scaffolding-icon.png",
     "homeUrl": "https://scaffold.wiki/",
-    "imageUrl": "https://scaffold.wiki/miniapp-scaffolding.png",
+    "imageUrl": "https://scaffold.wiki/images/miniapp-scaffolding.png",
     "buttonTitle": "Start Building",
-    "splashImageUrl": "https://scaffold.wiki/loading-icon.png",
+    "splashImageUrl": "https://scaffold.wiki/images/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
     "webhookUrl": "https://scaffold.wiki/api/webhook",
     "subtitle": "Quick-start scaffold for Farcaster Mini Apps",
@@ -162,14 +162,14 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
 const frameEmbed = {
   version: "next",
-  imageUrl: `${baseUrl}/miniapp-scaffolding.png`,
+  imageUrl: `${baseUrl}/images/miniapp-scaffolding.png`,
   button: {
     title: "Start Building",
     action: {
       type: "launch_frame",
       name: "Mini App Scaffold",
       url: `${baseUrl}/`,
-      splashImageUrl: `${baseUrl}/loading-icon.png`,
+      splashImageUrl: `${baseUrl}/images/loading-icon.png`,
       splashBackgroundColor: "#0f172a",
     },
   },
@@ -179,8 +179,8 @@ export const metadata: Metadata = {
   title: "Mini App Scaffold",
   description: "Quick-start scaffold for Farcaster Mini Apps with authentication, notifications, and data persistence",
   icons: {
-    icon: "/scaffolding-icon.png",
-    apple: "/scaffolding-icon.png",
+    icon: "/images/scaffolding-icon.png",
+    apple: "/images/scaffolding-icon.png",
   },
   other: {
     "fc:frame": JSON.stringify(frameEmbed),

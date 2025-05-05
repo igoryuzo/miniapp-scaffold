@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 
 const frameEmbed = {
   version: "next",
-  imageUrl: `https://scaffold.wiki/miniapp-scaffolding.png`,
+  imageUrl: `https://scaffold.wiki/images/miniapp-scaffolding.png`,
   button: {
     title: "Start Building",
     action: {
       type: "launch_frame",
       name: "Mini App Scaffold",
       url: `https://scaffold.wiki/`,
-      splashImageUrl: `https://scaffold.wiki/loading-icon.png`,
+      splashImageUrl: `https://scaffold.wiki/images/loading-icon.png`,
       splashBackgroundColor: "#0f172a",
     },
   },
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   title: "Mini App Scaffold",
   description: "Quick-start scaffold for Farcaster Mini Apps with authentication, notifications, and data persistence",
   icons: {
-    icon: "/scaffolding-icon.png",
-    apple: "/scaffolding-icon.png",
+    icon: "/images/scaffolding-icon.png",
+    apple: "/images/scaffolding-icon.png",
   },
   other: {
     "fc:frame": JSON.stringify(frameEmbed),
