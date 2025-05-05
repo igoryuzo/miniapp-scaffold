@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 
 const frameEmbed = {
   version: "next",
-  imageUrl: `https://scaffold.wiki/images/miniapp-scaffolding.png`,
+  imageUrl: `https://www.scaffold.wiki/images/miniapp-scaffolding.png`,
   button: {
     title: "Start Building",
     action: {
       type: "launch_frame",
       name: "Mini App Scaffold",
-      url: `https://scaffold.wiki/`,
-      splashImageUrl: `https://scaffold.wiki/images/loading-icon.png`,
+      url: `https://www.scaffold.wiki/`,
+      splashImageUrl: `https://www.scaffold.wiki/images/loading-icon.png`,
       splashBackgroundColor: "#0f172a",
     },
   },
