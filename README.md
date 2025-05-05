@@ -1,10 +1,10 @@
 # Mini App Scaffold
 
-A quick-start scaffold for Farcaster Frame applications with user authentication, notifications, and data persistence using Supabase.
+A quick-start scaffold for Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.
 
 ## Features
 
-- ✅ Farcaster Frame SDK integration
+- ✅ Farcaster Mini App SDK integration
 - ✅ User authentication flow
 - ✅ Push notifications
 - ✅ Supabase for data storage
@@ -86,12 +86,12 @@ yarn dev
 
 ### Authentication
 
-The scaffold uses Farcaster Frame SDK for authentication. The main authentication flow is in `src/lib/auth.ts`. Key features:
+The scaffold uses Farcaster Mini App SDK for authentication. The main authentication flow is in `src/lib/auth.ts`. Key features:
 
 - In-memory user state (not using localStorage for better security)
 - Secure nonce generation for auth
 - User profile storage in Supabase
-- Frame addition & notification permission handling
+- Mini App addition & notification permission handling
 
 ### Notifications
 
