@@ -12,18 +12,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-
 const frameEmbed = {
   version: "next",
-  imageUrl: `${baseUrl}/miniapp-scaffolding.png`,
+  imageUrl: `https://scaffold.wiki/miniapp-scaffolding.png`,
   button: {
     title: "Start Building",
     action: {
       type: "launch_frame",
       name: "Mini App Scaffold",
-      url: `${baseUrl}/`,
-      splashImageUrl: `${baseUrl}/loading-icon.png`,
+      url: `https://scaffold.wiki/`,
+      splashImageUrl: `https://scaffold.wiki/loading-icon.png`,
       splashBackgroundColor: "#0f172a",
     },
   },
