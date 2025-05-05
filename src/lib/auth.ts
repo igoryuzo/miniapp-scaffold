@@ -68,6 +68,16 @@ export async function signIn(): Promise<AuthUser | null> {
     const displayName = context.user.displayName;
     const pfpUrl = context.user.pfpUrl;
     
+    // Check if the app was previously added but now removed
+    const wasAppAdded = currentUser?.hasAddedApp || false;
+    const isNowAdded = context.client?.added || false;
+    
+    // If the app was added before but is now removed, clean up notification tokens
+    if (wasAppAdded && !isNowAdded) {
+      console.log("App was previously added but is now removed. Cleaning up notification tokens...");
+      await handleFrameRemoved(fid);
+    }
+    
     // Save user to Supabase
     try {
       console.log("Saving user to Supabase:", { fid, username, pfpUrl });
@@ -130,6 +140,34 @@ export function signOut(): void {
 }
 
 /**
+ * Handle the case when a user removes the Mini App
+ * This will clean up all notification tokens for the user
+ */
+async function handleFrameRemoved(fid: number): Promise<void> {
+  if (fid) {
+    try {
+      // Delete notification tokens from the database
+      const response = await fetch('/api/delete-notification-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fid })
+      });
+      
+      const data = await response.json();
+      console.log("Token deletion response:", data);
+      
+      // Update current user if exists
+      if (currentUser) {
+        currentUser.hasAddedApp = false;
+        currentUser.hasEnabledNotifications = false;
+      }
+    } catch (error) {
+      console.error("Error deleting notification token:", error);
+    }
+  }
+}
+
+/**
  * Prompt the user to add the frame and enable notifications
  * According to Farcaster docs, adding a frame includes enabling notifications by default
  */
@@ -145,6 +183,16 @@ export async function promptAddFrameAndNotifications(): Promise<{
     const isAlreadyAdded = context.client?.added || false;
     const existingNotificationDetails = context.client?.notificationDetails;
     
+    // Check if app was previously added but now removed
+    const wasAppAdded = currentUser?.hasAddedApp || false;
+    const isNowAdded = context.client?.added || false;
+    
+    // If app was previously added but is now removed, clean up notification tokens
+    if (wasAppAdded && !isNowAdded && context.user?.fid) {
+      console.log("App was previously added but is now removed. Cleaning up notification tokens...");
+      await handleFrameRemoved(context.user.fid);
+    }
+    
     if (isAlreadyAdded && existingNotificationDetails) {
       console.log("Frame is already added with notifications, skipping prompt");
       return {
@@ -153,83 +201,10 @@ export async function promptAddFrameAndNotifications(): Promise<{
       };
     }
     
-    // Debug current URL and window location for domain validation insights
-    const currentUrl = window.location.href;
-    const currentHostname = window.location.hostname;
-    console.log("Current page URL:", currentUrl);
-    console.log("Current hostname:", currentHostname);
-    
-    // Additional pre-flight checks
-    try {
-      // Check manifest before attempting to add frame
-      console.log("Checking manifest accessibility...");
-      const manifestResponse = await fetch('/.well-known/farcaster.json');
-      console.log("Manifest response status:", manifestResponse.status);
-      if (manifestResponse.ok) {
-        const manifest = await manifestResponse.json();
-        console.log("Manifest domain from payload:", Buffer.from(manifest.accountAssociation.payload, 'base64').toString());
-      }
-    } catch (manifestError) {
-      console.warn("Failed to pre-check manifest:", manifestError);
-      // Continue anyway
-    }
-    
     // Only prompt if not already added
     console.log("Calling sdk.actions.addFrame()...");
-    try {
-      // Decode the payload from farcaster.json for debugging
-      console.log("Current window location:", window.location.toString());
-      console.log("Current hostname:", window.location.hostname);
-      
-      try {
-        const manifestResponse = await fetch('/.well-known/farcaster.json');
-        if (manifestResponse.ok) {
-          const manifestText = await manifestResponse.text();
-          console.log("Raw manifest content:", manifestText);
-          
-          // Check for any trailing whitespace
-          if (manifestText.trim() !== manifestText) {
-            console.warn("WARNING: Manifest file contains trailing whitespace which may cause validation errors");
-          }
-          
-          try {
-            const manifest = JSON.parse(manifestText);
-            const payloadBase64 = manifest.accountAssociation.payload;
-            const decodedPayload = atob(payloadBase64);
-            console.log("Decoded manifest payload:", decodedPayload);
-            
-            // Compare with current hostname
-            try {
-              const payloadObj = JSON.parse(decodedPayload);
-              console.log("Manifest domain:", payloadObj.domain);
-              console.log("Current hostname:", window.location.hostname);
-              if (payloadObj.domain !== window.location.hostname) {
-                console.error("Domain mismatch between manifest and current hostname!");
-                console.error(`Manifest domain: ${payloadObj.domain}, Current hostname: ${window.location.hostname}`);
-              }
-            } catch (jsonError) {
-              console.error("Error parsing payload JSON:", jsonError);
-            }
-          } catch (parseError) {
-            console.error("Error parsing manifest JSON:", parseError);
-          }
-        }
-      } catch (manifestError) {
-        console.error("Error fetching manifest:", manifestError);
-      }
-      
-      await sdk.actions.addFrame();
-      console.log("sdk.actions.addFrame() completed successfully");
-    } catch (error) {
-      console.error("Error in sdk.actions.addFrame():", error);
-      // Check error message as a string to avoid type issues
-      const errorString = String(error);
-      if (errorString.includes("InvalidDomainManifest")) {
-        console.error("Domain manifest validation failed - check your farcaster.json and ensure URLs match verified domain");
-        console.error("Full error:", errorString);
-      }
-      throw error;
-    }
+    await sdk.actions.addFrame();
+    console.log("sdk.actions.addFrame() completed");
     
     // Get updated context
     console.log("Getting SDK context...");

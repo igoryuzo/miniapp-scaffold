@@ -321,3 +321,13 @@ If notifications aren't working:
 2. Ensure users have successfully added your app with notification permissions
 3. Check that the notification tokens are being properly stored in your database
 4. Review the Neynar dashboard for any API errors or rate limiting issues
+
+### Notification Token Cleanup
+
+The scaffold includes cleanup functionality to remove notification tokens when users remove the Mini App. This prevents sending notifications to users who have uninstalled your app:
+
+1. The SDK provides context about whether the app is added for each user session
+2. When a previously added app is detected as no longer added, the notification token is automatically removed from the database
+3. You can verify this behavior in the `src/lib/auth.ts` file where app status changes are monitored
+
+For manual cleanup, you can add a scheduled job to periodically verify tokens with Neynar and remove any that are no longer valid.
