@@ -25,6 +25,19 @@ function generateNonce(): string {
          Math.random().toString(36).substring(2, 15);
 }
 
+// Helper to safely access browser features
+function safelyAccessBrowser<T>(operation: () => T, fallback: T): T {
+  try {
+    return operation();
+  } catch (error) {
+    console.warn('Browser API access error:', error);
+    return fallback;
+  }
+}
+
+// Async version of safelyAccessBrowser
+async function safelyAccessBrowserAsync<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  try {
     return await operation();
   } catch (error) {
     console.warn('Browser API access error:', error);
