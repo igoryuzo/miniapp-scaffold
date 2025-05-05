@@ -31,22 +31,22 @@ export async function POST(request: Request) {
     switch (category) {
       case 'welcome':
         notification = {
-          title: 'Welcome to Mini App!',
-          body: 'Thanks for enabling notifications.',
+          title: '✈️ Enjoy Farcon NYC',
+          body: 'Start a convo, make a difference.',
           target_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
         };
         break;
       case 'nearby_users':
         notification = {
-          title: '👍 Community Update!',
-          body: 'Connect with the Farcaster community!',
+          title: '👥 Community Update!',
+          body: 'Connect with the Farcaster community on Minimap!',
           target_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
         };
         break;
       case 'events':
         notification = {
-          title: '📉 Events Update!',
-          body: 'Check out the latest events!',
+          title: '🗓️ Local Events!',
+          body: 'Discover events on Minimap!',
           target_url: `${process.env.NEXT_PUBLIC_APP_URL}/events`,
         };
         break;

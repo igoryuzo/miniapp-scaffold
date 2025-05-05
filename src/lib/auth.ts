@@ -144,25 +144,56 @@ export function signOut(): void {
  * This will clean up all notification tokens for the user
  */
 async function handleFrameRemoved(fid: number): Promise<void> {
-  if (fid) {
+  if (!fid) {
+    console.error("Invalid FID provided to handleFrameRemoved");
+    return;
+  }
+  
+  console.log(`Handling app removal for FID ${fid}. Cleaning up notification tokens...`);
+  
+  try {
+    // Delete notification tokens from the database
+    const response = await fetch('/api/delete-notification-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fid })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete notification tokens: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`Token deletion successful for FID ${fid}:`, data);
+    
+    // Update current user if exists
+    if (currentUser) {
+      console.log(`Updating current user status for FID ${fid}`);
+      currentUser.hasAddedApp = false;
+      currentUser.hasEnabledNotifications = false;
+    }
+    
+    // Log to webhook events table if possible
     try {
-      // Delete notification tokens from the database
-      const response = await fetch('/api/delete-notification-token', {
+      await fetch('/api/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fid })
+        body: JSON.stringify({
+          type: 'frame.removed',
+          fid: fid,
+          timestamp: new Date().toISOString()
+        })
       });
-      
-      const data = await response.json();
-      console.log("Token deletion response:", data);
-      
-      // Update current user if exists
-      if (currentUser) {
-        currentUser.hasAddedApp = false;
-        currentUser.hasEnabledNotifications = false;
-      }
-    } catch (error) {
-      console.error("Error deleting notification token:", error);
+    } catch (webhookError) {
+      // Just log the error, don't interrupt the flow
+      console.warn("Could not log frame removal to webhook:", webhookError);
+    }
+  } catch (error) {
+    console.error(`Error handling app removal for FID ${fid}:`, error);
+    // Still update the user object even if API call fails
+    if (currentUser) {
+      currentUser.hasAddedApp = false;
+      currentUser.hasEnabledNotifications = false;
     }
   }
 }

@@ -1,32 +1,33 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { removeNotificationToken } from '../../../lib/supabase';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fid } = body;
+    const { fid, token } = body;
 
     if (!fid) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required FID' }, { status: 400 });
     }
 
-    // Delete the notification token for this user
-    const { error } = await supabase
-      .from('notification_tokens')
-      .delete()
-      .eq('fid', fid);
+    console.log(`Deleting notification tokens for FID ${fid}`);
+    
+    // Delete the notification token(s) for this user
+    // If token is provided, delete that specific token, otherwise delete all tokens for the user
+    const { data, error } = await removeNotificationToken(fid, token);
 
     if (error) {
       console.error('Error deleting notification token:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    const deletedCount = data ? data.length : 0;
+    console.log(`Successfully deleted notification tokens for FID ${fid}. Rows affected: ${deletedCount}`);
+    
+    return NextResponse.json({ 
+      success: true,
+      deleted: deletedCount
+    });
   } catch (error) {
     console.error('Error in delete-notification-token:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

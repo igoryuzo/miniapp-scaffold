@@ -331,3 +331,47 @@ The scaffold includes cleanup functionality to remove notification tokens when u
 3. You can verify this behavior in the `src/lib/auth.ts` file where app status changes are monitored
 
 For manual cleanup, you can add a scheduled job to periodically verify tokens with Neynar and remove any that are no longer valid.
+
+## Webhooks Handler
+
+This project includes a webhook handler endpoint at `/api/webhook` that can process incoming webhook requests from external services. The handler supports:
+
+1. Processing different event types:
+   - `user.created` - When a new user is created
+   - `frame.added` - When a user adds your Frame/Mini App
+   - `notification.sent` - Notification delivery events
+
+2. Signature verification (when implemented with your webhook provider)
+
+3. Event logging to Supabase
+
+### Database Tables Required
+
+Create the following tables in your Supabase project to support webhooks:
+
+```sql
+-- Table for storing webhook events
+CREATE TABLE webhook_events (
+  id SERIAL PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  fid INT,
+  data JSONB,
+  processed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table for logging notification delivery
+CREATE TABLE notification_logs (
+  id SERIAL PRIMARY KEY,
+  notification_id TEXT,
+  fid INT,
+  success BOOLEAN DEFAULT FALSE,
+  data JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better query performance
+CREATE INDEX webhook_events_event_type_idx ON webhook_events (event_type);
+CREATE INDEX webhook_events_fid_idx ON webhook_events (fid);
+CREATE INDEX notification_logs_fid_idx ON notification_logs (fid);
+```

@@ -31,12 +31,20 @@ export async function saveNotificationToken(fid: number, token: string, url: str
     .select();
 }
 
-// Remove notification token
-export async function removeNotificationToken(fid: number, token: string) {
-  return supabaseAdmin
+// Remove notification token - if token is provided, delete that specific token
+// If token is not provided, delete all tokens for the user
+export async function removeNotificationToken(fid: number, token?: string) {
+  const query = supabaseAdmin
     .from('notification_tokens')
-    .delete()
-    .match({ fid, token });
+    .delete();
+    
+  if (token) {
+    // Delete specific token
+    return query.match({ fid, token }).select();
+  } else {
+    // Delete all tokens for this user
+    return query.eq('fid', fid).select();
+  }
 }
 
 // Get notification tokens for a user
