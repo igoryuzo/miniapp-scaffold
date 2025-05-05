@@ -32,7 +32,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 NEYNAR_API_KEY=your_neynar_api_key
 
 # Application URL (used for notification links)
-NEXT_PUBLIC_APP_URL=https://www.scaffold.wiki
+NEXT_PUBLIC_APP_URL=https://scaffold.wiki
 ```
 
 ### Database Setup
@@ -129,13 +129,13 @@ Example manifest:
   "frame": {
     "version": "1",
     "name": "Mini App Scaffold",
-    "iconUrl": "https://www.scaffold.wiki/scaffolding-icon.png",
-    "homeUrl": "https://www.scaffold.wiki/",
-    "imageUrl": "https://www.scaffold.wiki/miniapp-scaffolding.png",
+    "iconUrl": "https://scaffold.wiki/scaffolding-icon.png",
+    "homeUrl": "https://scaffold.wiki/",
+    "imageUrl": "https://scaffold.wiki/miniapp-scaffolding.png",
     "buttonTitle": "Start Building",
-    "splashImageUrl": "https://www.scaffold.wiki/loading-icon.png",
+    "splashImageUrl": "https://scaffold.wiki/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
-    "webhookUrl": "https://www.scaffold.wiki/api/webhook",
+    "webhookUrl": "https://scaffold.wiki/api/webhook",
     "subtitle": "Quick-start scaffold for Farcaster Mini Apps",
     "description": "Quickly build Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.",
     "primaryCategory": "developer",
@@ -229,7 +229,7 @@ vercel
 1. Go to your project dashboard on Vercel
 2. Navigate to Settings > Environment Variables
 3. Add each variable from your `.env.local` file
-4. Update `NEXT_PUBLIC_APP_URL` to your production URL (e.g., `https://www.scaffold.wiki`)
+4. Update `NEXT_PUBLIC_APP_URL` to your production URL (e.g., `https://scaffold.wiki`)
 
 ## License
 

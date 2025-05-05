@@ -41,7 +41,7 @@ NEYNAR_API_KEY=your_neynar_api_key
 For the `NEXT_PUBLIC_APP_URL` variable, use your production URL:
 
 ```
-NEXT_PUBLIC_APP_URL=https://www.scaffold.wiki
+NEXT_PUBLIC_APP_URL=https://scaffold.wiki
 ```
 
 **Important:** If you've set up a custom domain, use that instead.
