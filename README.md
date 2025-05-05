@@ -126,6 +126,11 @@ When deploying your app, you'll need to:
 Example manifest:
 ```json
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjkxNTIsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgwMmVmNzkwRGQ3OTkzQTM1ZkQ4NDdDMDUzRURkQUU5NDBEMDU1NTk2In0",
+    "payload": "eyJkb21haW4iOiJzY2FmZm9sZC53aWtpIn0",
+    "signature": "MHgxMGQwZGU4ZGYwZDUwZTdmMGIxN2YxMTU2NDI1MjRmZTY0MTUyZGU4ZGU1MWU0MThiYjU4ZjVmZmQxYjRjNDBiNGVlZTRhNDcwNmVmNjhlMzQ0ZGQ5MDBkYmQyMmNlMmVlZGY5ZGQ0N2JlNWRmNzMwYzUxNjE4OWVjZDJjY2Y0MDFj"
+  },
   "frame": {
     "version": "1",
     "name": "Mini App Scaffold",
@@ -136,9 +141,9 @@ Example manifest:
     "splashImageUrl": "https://scaffold.wiki/images/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
     "webhookUrl": "https://scaffold.wiki/api/webhook",
-    "subtitle": "Quick-start scaffold for Farcaster Mini Apps",
-    "description": "Quickly build Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.",
-    "primaryCategory": "developer",
+    "subtitle": "Farcaster Mini App Starter Kit",
+    "description": "Build Farcaster apps with auth & storage",
+    "primaryCategory": "developer-tools",
     "tags": [
       "scaffold",
       "boilerplate",
@@ -146,7 +151,11 @@ Example manifest:
       "notifications",
       "supabase"
     ],
-    "tagline": "Build your Mini App from a solid foundation"
+    "tagline": "Mini App Scaffolding.",
+    "ogTitle": "Mini App Scaffold",
+    "ogDescription": "Build Farcaster apps with auth & storage",
+    "ogImageUrl": "https://scaffold.wiki/images/miniapp-scaffolding.png",
+    "noindex": false
   }
 }
 ```

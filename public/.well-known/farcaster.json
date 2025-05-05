@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "REPLACE_WITH_HEADER_FROM_WARPCAST_TOOL",
+    "payload": "REPLACE_WITH_PAYLOAD_FROM_WARPCAST_TOOL",
+    "signature": "REPLACE_WITH_SIGNATURE_FROM_WARPCAST_TOOL"
+  },
   "frame": {
     "version": "1",
     "name": "Mini App Scaffold",
@@ -9,9 +14,9 @@
     "splashImageUrl": "https://scaffold.wiki/images/loading-icon.png",
     "splashBackgroundColor": "#0f172a",
     "webhookUrl": "https://scaffold.wiki/api/webhook",
-    "subtitle": "Quick-start scaffold for Farcaster Mini Apps",
-    "description": "Quickly build Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.",
-    "primaryCategory": "developer",
+    "subtitle": "Farcaster Mini App Starter Kit",
+    "description": "Build Farcaster apps with auth & storage",
+    "primaryCategory": "developer-tools",
     "tags": [
       "scaffold",
       "boilerplate",
@@ -19,6 +24,10 @@
       "notifications",
       "supabase"
     ],
-    "tagline": "Build your Mini App from a solid foundation"
+    "tagline": "Mini App Scaffolding.",
+    "ogTitle": "Mini App Scaffold",
+    "ogDescription": "Build Farcaster apps with auth & storage",
+    "ogImageUrl": "https://scaffold.wiki/images/miniapp-scaffolding.png",
+    "noindex": false
   }
 } 
