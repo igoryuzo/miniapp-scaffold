@@ -136,6 +136,8 @@ yarn global add vercel
 vercel
 ```
 
+**Important:** Make sure to add all environment variables from your `.env.local` file to your Vercel project settings. Go to your project dashboard on Vercel, navigate to Settings > Environment Variables, and add each variable.
+
 ## License
 
 MIT
