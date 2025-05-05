@@ -177,6 +177,47 @@ export async function promptAddFrameAndNotifications(): Promise<{
     // Only prompt if not already added
     console.log("Calling sdk.actions.addFrame()...");
     try {
+      // Decode the payload from farcaster.json for debugging
+      console.log("Current window location:", window.location.toString());
+      console.log("Current hostname:", window.location.hostname);
+      
+      try {
+        const manifestResponse = await fetch('/.well-known/farcaster.json');
+        if (manifestResponse.ok) {
+          const manifestText = await manifestResponse.text();
+          console.log("Raw manifest content:", manifestText);
+          
+          // Check for any trailing whitespace
+          if (manifestText.trim() !== manifestText) {
+            console.warn("WARNING: Manifest file contains trailing whitespace which may cause validation errors");
+          }
+          
+          try {
+            const manifest = JSON.parse(manifestText);
+            const payloadBase64 = manifest.accountAssociation.payload;
+            const decodedPayload = atob(payloadBase64);
+            console.log("Decoded manifest payload:", decodedPayload);
+            
+            // Compare with current hostname
+            try {
+              const payloadObj = JSON.parse(decodedPayload);
+              console.log("Manifest domain:", payloadObj.domain);
+              console.log("Current hostname:", window.location.hostname);
+              if (payloadObj.domain !== window.location.hostname) {
+                console.error("Domain mismatch between manifest and current hostname!");
+                console.error(`Manifest domain: ${payloadObj.domain}, Current hostname: ${window.location.hostname}`);
+              }
+            } catch (jsonError) {
+              console.error("Error parsing payload JSON:", jsonError);
+            }
+          } catch (parseError) {
+            console.error("Error parsing manifest JSON:", parseError);
+          }
+        }
+      } catch (manifestError) {
+        console.error("Error fetching manifest:", manifestError);
+      }
+      
       await sdk.actions.addFrame();
       console.log("sdk.actions.addFrame() completed successfully");
     } catch (error) {
@@ -185,6 +226,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
       const errorString = String(error);
       if (errorString.includes("InvalidDomainManifest")) {
         console.error("Domain manifest validation failed - check your farcaster.json and ensure URLs match verified domain");
+        console.error("Full error:", errorString);
       }
       throw error;
     }
