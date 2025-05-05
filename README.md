@@ -142,7 +142,7 @@ Example manifest:
     "splashBackgroundColor": "#0f172a",
     "webhookUrl": "https://scaffold.wiki/api/webhook",
     "subtitle": "Farcaster Mini App Starter Kit",
-    "description": "Build Farcaster apps with auth & storage",
+    "description": "Build Farcaster apps with auth and storage",
     "primaryCategory": "developer-tools",
     "tags": [
       "scaffold",
@@ -153,7 +153,7 @@ Example manifest:
     ],
     "tagline": "Mini App Scaffolding.",
     "ogTitle": "Mini App Scaffold",
-    "ogDescription": "Build Farcaster apps with auth & storage",
+    "ogDescription": "Build Farcaster apps with auth and storage",
     "ogImageUrl": "https://scaffold.wiki/images/miniapp-scaffolding.png",
     "noindex": false
   }
