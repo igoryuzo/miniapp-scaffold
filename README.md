@@ -14,7 +14,7 @@ A quick-start scaffold for Farcaster Frame applications with user authentication
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
+- Node.js 18+ and yarn
 - [Supabase](https://supabase.com) account & project
 - [Neynar](https://neynar.com) API key for notifications
 
@@ -37,7 +37,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Database Setup
 
-In your Supabase project, create the following tables:
+In your Supabase project, create the following tables by going to the **SQL Editor** in your Supabase dashboard and executing the following SQL commands:
+
+1. Go to your Supabase project dashboard
+2. Click on "SQL Editor" in the left sidebar
+3. Create a "New Query"
+4. Paste the SQL below and click "Run"
 
 #### 1. `users` table
 
@@ -65,14 +70,16 @@ create table notification_tokens (
 );
 ```
 
+You can also run both commands together in a single query in the SQL Editor.
+
 ### Installation
 
 ```bash
 # Install dependencies
-npm install
+yarn install
 
 # Run the development server
-npm run dev
+yarn dev
 ```
 
 ## How It Works
@@ -122,9 +129,10 @@ Deploy your app with Vercel:
 
 ```bash
 # Build for production
-npm run build
+yarn build
 
 # Deploy with Vercel
+yarn global add vercel
 vercel
 ```
 
