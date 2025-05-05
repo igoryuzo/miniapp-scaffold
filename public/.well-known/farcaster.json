@@ -28,6 +28,18 @@
     "ogTitle": "Mini App Scaffold",
     "ogDescription": "Build Farcaster apps with auth and storage",
     "ogImageUrl": "https://www.scaffold.wiki/images/miniapp-scaffolding.png",
-    "noindex": false
+    "noindex": false,
+    "permissions": ["cast:read"],
+    "notifications": {
+      "enabled": true,
+      "categories": [
+        {
+          "id": "updates",
+          "name": "App Updates"
+        }
+      ]
+    },
+    "author": "igoryuzo.eth",
+    "theme_color": "#0f172a"
   }
 } 
