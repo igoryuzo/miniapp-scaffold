@@ -153,10 +153,41 @@ export async function promptAddFrameAndNotifications(): Promise<{
       };
     }
     
+    // Debug current URL and window location for domain validation insights
+    const currentUrl = window.location.href;
+    const currentHostname = window.location.hostname;
+    console.log("Current page URL:", currentUrl);
+    console.log("Current hostname:", currentHostname);
+    
+    // Additional pre-flight checks
+    try {
+      // Check manifest before attempting to add frame
+      console.log("Checking manifest accessibility...");
+      const manifestResponse = await fetch('/.well-known/farcaster.json');
+      console.log("Manifest response status:", manifestResponse.status);
+      if (manifestResponse.ok) {
+        const manifest = await manifestResponse.json();
+        console.log("Manifest domain from payload:", Buffer.from(manifest.accountAssociation.payload, 'base64').toString());
+      }
+    } catch (manifestError) {
+      console.warn("Failed to pre-check manifest:", manifestError);
+      // Continue anyway
+    }
+    
     // Only prompt if not already added
     console.log("Calling sdk.actions.addFrame()...");
-    await sdk.actions.addFrame();
-    console.log("sdk.actions.addFrame() completed");
+    try {
+      await sdk.actions.addFrame();
+      console.log("sdk.actions.addFrame() completed successfully");
+    } catch (error) {
+      console.error("Error in sdk.actions.addFrame():", error);
+      // Check error message as a string to avoid type issues
+      const errorString = String(error);
+      if (errorString.includes("InvalidDomainManifest")) {
+        console.error("Domain manifest validation failed - check your farcaster.json and ensure URLs match verified domain");
+      }
+      throw error;
+    }
     
     // Get updated context
     console.log("Getting SDK context...");
