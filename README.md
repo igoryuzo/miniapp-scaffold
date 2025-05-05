@@ -108,6 +108,94 @@ Supabase is used for data persistence. The main database operations are in:
 - `src/lib/supabase.ts` - Core Supabase client configuration
 - `src/app/api/users/save/route.ts` - API route for saving user data
 
+### Manifest File
+
+The scaffold includes a manifest file at `public/.well-known/farcaster.json` that follows the [Farcaster Mini App Specification](https://miniapps.farcaster.xyz/docs/specification#manifest). This file is required for publishing your Mini App and enabling features like notifications.
+
+The manifest contains:
+
+1. Information about your app (name, description, icons)
+2. URLs for important resources (home, webhook)
+3. Appearance settings (splash screen)
+
+When deploying your app, you'll need to:
+
+1. Update the manifest with your app's information
+2. Verify ownership by adding an `accountAssociation` field (use the [Mini App Manifest Tool](https://warpcast.com/~/developers/new) to generate this)
+
+Example manifest:
+```json
+{
+  "frame": {
+    "version": "1",
+    "name": "Mini App Scaffold",
+    "iconUrl": "https://miniapp-scaffold.vercel.app/scaffolding-icon.png",
+    "homeUrl": "https://miniapp-scaffold.vercel.app/",
+    "imageUrl": "https://miniapp-scaffold.vercel.app/miniapp-scaffolding.png",
+    "buttonTitle": "Start Building",
+    "splashImageUrl": "https://miniapp-scaffold.vercel.app/loading-icon.png",
+    "splashBackgroundColor": "#0f172a",
+    "webhookUrl": "https://miniapp-scaffold.vercel.app/api/webhook",
+    "subtitle": "Quick-start scaffold for Farcaster Mini Apps",
+    "description": "Quickly build Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.",
+    "primaryCategory": "developer",
+    "tags": [
+      "scaffold",
+      "boilerplate",
+      "auth",
+      "notifications",
+      "supabase"
+    ],
+    "tagline": "Build your Mini App from a solid foundation"
+  }
+}
+```
+
+### Meta Tags for Sharing
+
+The scaffold includes proper meta tags in the root layout file (`src/app/layout.tsx`) to make your Mini App shareable in Farcaster feeds. When someone shares your app's URL, Farcaster clients will display a rich embed with an image and a button to launch your app.
+
+The meta tags use the Next.js metadata API with the custom `fc:frame` tag required by Farcaster:
+
+```typescript
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+
+const frameEmbed = {
+  version: "next",
+  imageUrl: `${baseUrl}/miniapp-scaffolding.png`,
+  button: {
+    title: "Start Building",
+    action: {
+      type: "launch_frame",
+      name: "Mini App Scaffold",
+      url: `${baseUrl}/`,
+      splashImageUrl: `${baseUrl}/loading-icon.png`,
+      splashBackgroundColor: "#0f172a",
+    },
+  },
+};
+
+export const metadata: Metadata = {
+  title: "Mini App Scaffold",
+  description: "Quick-start scaffold for Farcaster Mini Apps with authentication, notifications, and data persistence",
+  icons: {
+    icon: "/scaffolding-icon.png",
+    apple: "/scaffolding-icon.png",
+  },
+  other: {
+    "fc:frame": JSON.stringify(frameEmbed),
+  },
+};
+```
+
+When customizing your app:
+1. Update the `title`, `description`, and `icons` to match your app's branding
+2. Modify the `frameEmbed` object with your own image and button text
+3. Make sure the image URLs match the actual files in your `public` directory
+4. Ensure the `NEXT_PUBLIC_APP_URL` environment variable is set correctly in production
+
+You can add similar meta tags to other pages in your app to make specific pages shareable with custom images and actions.
+
 ## Customization
 
 ### Changing App Name
@@ -136,7 +224,12 @@ yarn global add vercel
 vercel
 ```
 
-**Important:** Make sure to add all environment variables from your `.env.local` file to your Vercel project settings. Go to your project dashboard on Vercel, navigate to Settings > Environment Variables, and add each variable.
+**Important:** Make sure to add all environment variables from your `.env.local` file to your Vercel project settings:
+
+1. Go to your project dashboard on Vercel
+2. Navigate to Settings > Environment Variables
+3. Add each variable from your `.env.local` file
+4. Update `NEXT_PUBLIC_APP_URL` to your production URL (e.g., `https://miniapp-scaffold.vercel.app`)
 
 ## License
 
