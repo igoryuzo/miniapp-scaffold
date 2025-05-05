@@ -21,7 +21,7 @@ const frameEmbed = {
       type: "launch_frame",
       name: "Mini App Scaffold",
       url: `https://www.scaffold.wiki/`,
-      splashImageUrl: `https://www.scaffold.wiki/images/loading-icon.png`,
+      splashImageUrl: `https://www.scaffold.wiki/images/scaffolding-icon.png`,
       splashBackgroundColor: "#0f172a",
     },
   },

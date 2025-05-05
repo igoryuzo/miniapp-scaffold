@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     switch (category) {
       case 'welcome':
         notification = {
-          title: '✈️ Enjoy Farcon NYC',
-          body: 'Start a convo, make a difference.',
+          title: 'Congrats! 🎉',
+          body: 'Welcome notifications are working!',
           target_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
         };
         break;

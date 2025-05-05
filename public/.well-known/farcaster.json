@@ -11,7 +11,7 @@
     "homeUrl": "https://www.scaffold.wiki/",
     "imageUrl": "https://www.scaffold.wiki/images/miniapp-scaffolding.png",
     "buttonTitle": "Start Building",
-    "splashImageUrl": "https://www.scaffold.wiki/images/loading-icon.png",
+    "splashImageUrl": "https://www.scaffold.wiki/images/scaffolding-icon.png",
     "splashBackgroundColor": "#0f172a",
     "webhookUrl": "https://api.neynar.com/f/app/3aa7041e-2f4b-4b5b-a63b-24869f48551f/event",
     "subtitle": "Farcaster Mini App Starter Kit",
