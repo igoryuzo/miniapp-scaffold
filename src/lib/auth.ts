@@ -180,19 +180,8 @@ export async function promptAddFrameAndNotifications(): Promise<{
     
     // Check context first to see if frame is already added
     const context = await sdk.context;
-    console.log("Initial context:", JSON.stringify(context, null, 2));
     const isAlreadyAdded = context.client?.added || false;
     const existingNotificationDetails = context.client?.notificationDetails;
-    
-    // Check if app was previously added but now removed
-    const wasAppAdded = currentUser?.hasAddedApp || false;
-    const isNowAdded = context.client?.added || false;
-    
-    // If app was previously added but is now removed, clean up notification tokens
-    if (wasAppAdded && !isNowAdded && context.user?.fid) {
-      console.log("App was previously added but is now removed. Cleaning up notification tokens...");
-      await handleFrameRemoved(context.user.fid);
-    }
     
     if (isAlreadyAdded && existingNotificationDetails) {
       console.log("Frame is already added with notifications, skipping prompt");
@@ -204,39 +193,16 @@ export async function promptAddFrameAndNotifications(): Promise<{
     
     // Only prompt if not already added
     console.log("Calling sdk.actions.addFrame()...");
-    try {
-      await sdk.actions.addFrame();
-      console.log("sdk.actions.addFrame() completed successfully");
-    } catch (error) {
-      // Handle specific error cases
-      const errorString = String(error);
-      console.error("Error in sdk.actions.addFrame():", errorString);
-      
-      if (errorString.includes("RejectedByUser")) {
-        console.log("User chose not to add the app or automatic rejection occurred");
-        // This is an expected path, so we'll just return a false result
-        return { added: false };
-      } else if (errorString.includes("InvalidDomainManifest")) {
-        console.error("Domain manifest validation failed - check your farcaster.json file and webhook URL");
-      }
-      
-      // Rather than rethrowing, we'll continue to try and get context
-      console.log("Continuing after addFrame error to check context");
-    }
+    await sdk.actions.addFrame();
+    console.log("sdk.actions.addFrame() completed");
     
-    // Get updated context even if addFrame failed
+    // Get updated context
     console.log("Getting SDK context...");
-    let updatedContext;
-    try {
-      updatedContext = await sdk.context;
-      console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
-    } catch (contextError) {
-      console.error("Error getting updated context:", contextError);
-      return { added: false };
-    }
+    const updatedContext = await sdk.context;
+    console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
     
-    const isAdded = updatedContext?.client?.added || false;
-    const notificationDetails = updatedContext?.client?.notificationDetails;
+    const isAdded = updatedContext.client?.added || false;
+    const notificationDetails = updatedContext.client?.notificationDetails;
     console.log("Frame status:", { isAdded, notificationDetails });
     
     // Update the user state if successful
@@ -247,7 +213,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
     }
     
     // If notification details are available, store them in our database
-    if (isAdded && notificationDetails && updatedContext?.user?.fid) {
+    if (isAdded && notificationDetails && updatedContext.user?.fid) {
       console.log("Frame added successfully with notification details. Storing token...");
       try {
         // Send to your backend API
@@ -288,7 +254,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
     } else {
       console.log("Frame not added or missing notification details:", {
         isAdded,
-        hasFid: !!updatedContext?.user?.fid,
+        hasFid: !!updatedContext.user?.fid,
         hasNotificationDetails: !!notificationDetails
       });
     }

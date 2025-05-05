@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { signIn, getUser, isSignedIn, AuthUser, promptAddFrameAndNotifications } from '@/lib/auth';
+import { sdk } from '@farcaster/frame-sdk';
 
 export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -53,6 +54,15 @@ export default function Home() {
         console.error("Error initializing app:", error);
       } finally {
         if (mounted) {
+          // Signal to Farcaster client that the app is ready, even if there were errors
+          try {
+            console.log("Signaling app is ready to Farcaster client...");
+            await sdk.actions.ready();
+            console.log("Ready signal sent successfully");
+          } catch (readyError) {
+            console.error("Error sending ready signal:", readyError);
+          }
+          
           setIsLoading(false);
         }
       }
