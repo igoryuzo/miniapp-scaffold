@@ -118,6 +118,35 @@ The manifest contains:
 2. URLs for important resources (home, webhook)
 3. Appearance settings (splash screen)
 
+#### Setting Up Account Association
+
+Before your Mini App can be published, you need to claim ownership by setting up the account association in your manifest file. This associates your domain with your Farcaster account.
+
+Follow these steps:
+
+1. Deploy your Mini App to your production domain (e.g., scaffold.wiki)
+2. Go to your domain in Warpcast's [Mini App Developer Tools](https://warpcast.com/~/developers/mini-apps)
+3. Click "Claim Ownership" and scan the QR code with your Warpcast mobile app
+4. Once signed, you'll receive the account association data
+5. Replace the placeholder values in your `farcaster.json` file:
+
+```json
+"accountAssociation": {
+  "header": "REPLACE_WITH_HEADER_FROM_WARPCAST_TOOL",
+  "payload": "REPLACE_WITH_PAYLOAD_FROM_WARPCAST_TOOL",
+  "signature": "REPLACE_WITH_SIGNATURE_FROM_WARPCAST_TOOL"
+}
+```
+
+6. Deploy your updated manifest file
+7. Verify your ownership is properly established in Warpcast's developer tools
+
+This step is critical for:
+- Enabling the "Add App" functionality
+- Allowing notifications to work
+- Showing your app in Warpcast's Mini App directory
+- Being eligible for developer rewards
+
 When deploying your app, you'll need to:
 
 1. Update the manifest with your app's information
