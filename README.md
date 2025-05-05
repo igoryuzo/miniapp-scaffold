@@ -1,4 +1,4 @@
-# MiniApp Scaffold
+# Mini App Scaffold
 
 A quick-start scaffold for Farcaster Frame applications with user authentication, notifications, and data persistence using Supabase.
 
