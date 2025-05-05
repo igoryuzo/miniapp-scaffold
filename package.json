@@ -1,5 +1,5 @@
 {
-  "name": "dollarchain",
+  "name": "miniapp-scaffold",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "@farcaster/auth-kit": "^0.6.0",
     "@farcaster/frame-sdk": "^0.0.37",
     "@neynar/nodejs-sdk": "^2.33.1",
+    "@supabase/supabase-js": "^2.39.6",
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

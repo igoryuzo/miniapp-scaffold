@@ -2,114 +2,231 @@ import { sdk } from '@farcaster/frame-sdk';
 
 export interface AuthUser {
   fid: number;
-  username: string;
+  username?: string;
   displayName?: string;
-  pfp?: string;
-  hasAddedApp: boolean;
-  hasEnabledNotifications: boolean;
+  pfpUrl?: string;
+  hasAddedApp?: boolean;
+  hasEnabledNotifications?: boolean;
+  sessionToken?: string;
 }
 
-export interface NotificationDetails {
-  granted: boolean;
-  token?: string;
+export interface FrameNotificationDetails {
+  url: string;
+  token: string;
 }
 
-// Check if the user is signed in 
-export const isSignedIn = (): boolean => {
-  try {
-    // Check if we have stored auth state
-    const authState = localStorage.getItem('farcaster_auth');
-    return !!authState;
-  } catch (error) {
-    // In case of any errors (e.g., localStorage not available)
-    console.error('Error checking auth state:', error);
-    return false;
-  }
-};
+// Store user in memory (not localStorage for better security)
+let currentUser: AuthUser | null = null;
 
-// Get the current authenticated user
-export const getUser = (): AuthUser | null => {
+// Generate a secure nonce
+function generateNonce(): string {
+  // Generate a random string of at least 8 characters
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+}
+
+// Check if user is signed in
+export function isSignedIn(): boolean {
+  return !!currentUser;
+}
+
+// Get the current user
+export function getUser(): AuthUser | null {
+  return currentUser;
+}
+
+// Sign in with Farcaster
+export async function signIn(): Promise<AuthUser | null> {
   try {
-    const authStateStr = localStorage.getItem('farcaster_auth');
-    if (!authStateStr) return null;
+    // Generate a nonce (at least 8 alphanumeric characters as per documentation)
+    const nonce = generateNonce();
+    console.log("Generated nonce:", nonce);
     
-    const authState = JSON.parse(authStateStr);
-    return authState.user || null;
-  } catch (error) {
-    console.error('Error getting user:', error);
-    return null;
-  }
-};
-
-// Sign in the user with Farcaster
-export const signIn = async (): Promise<AuthUser | null> => {
-  try {
-    // Try to get existing auth information
-    if (isSignedIn()) {
-      const user = getUser();
-      if (user) return user;
+    // Call the signIn method from the SDK
+    console.log("Calling Frame SDK signIn with nonce...");
+    const signInResult = await sdk.actions.signIn({ nonce });
+    
+    console.log("SignIn result:", JSON.stringify(signInResult, null, 2));
+    
+    if (!signInResult) {
+      console.log("No sign in result returned");
+      return null;
     }
     
-    // Initialize Frame SDK if needed
-    await sdk.actions.ready();
+    // Get user data from SDK context instead of parsing from message
+    const context = await sdk.context;
+    console.log("SDK context:", JSON.stringify(context, null, 2));
     
-    // We'll use a simplified approach since getUserInfo isn't directly available
-    // This is a placeholder - in a real app, you'd need to implement this based on the specific SDK version
-    // For example, you might use auth-kit's signIn method instead
-    console.warn('This is a placeholder implementation - replace with actual SDK usage');
+    if (!context || !context.user || !context.user.fid) {
+      console.error("Missing user data in SDK context");
+      throw new Error("Missing user data in SDK context");
+    }
     
-    // For demo purposes, create a dummy user
-    const user: AuthUser = {
-      fid: 12345, // This would come from actual authentication
-      username: 'demouser',
-      displayName: 'Demo User',
-      pfp: '',
-      hasAddedApp: false,
-      hasEnabledNotifications: false
+    // Get user info from context
+    const fid = context.user.fid;
+    const username = context.user.username || 'unknown';
+    const displayName = context.user.displayName;
+    const pfpUrl = context.user.pfpUrl;
+    
+    // Save user to Supabase
+    try {
+      console.log("Saving user to Supabase:", { fid, username, pfpUrl });
+      // Use a fetch request to a new API endpoint we'll create
+      const response = await fetch('/api/users/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fid,
+          username,
+          avatar_url: pfpUrl,
+        }),
+      });
+      
+      console.log("Supabase save response status:", response.status);
+      const saveData = await response.json();
+      console.log("Supabase save response:", saveData);
+      
+      if (!response.ok) {
+        console.warn("Failed to save user to Supabase", saveData);
+        // Continue with auth flow even if save fails
+      }
+    } catch (error) {
+      console.error("Error saving user to Supabase:", error);
+      // Continue with auth flow even if save fails
+    }
+    
+    // Create a simple auth token on the client side
+    // This is just for demonstration - in production, you'd get a real token from the server
+    const tempToken = Buffer.from(`${fid}:${Date.now()}`).toString('base64');
+    
+    // Create auth user object
+    const authUser: AuthUser = {
+      fid,
+      username,
+      displayName,
+      pfpUrl,
+      sessionToken: tempToken,
+      hasAddedApp: context.client?.added || false,
+      hasEnabledNotifications: !!context.client?.notificationDetails
     };
     
-    // Store auth state
-    localStorage.setItem('farcaster_auth', JSON.stringify({ user }));
+    console.log("Created authUser:", JSON.stringify(authUser, null, 2));
     
-    return user;
+    // Store in memory only (not localStorage)
+    currentUser = authUser;
+    
+    return authUser;
   } catch (error) {
-    console.error('Error during authentication:', error);
-    return null;
+    console.error("Authentication error:", error);
+    throw error;
   }
-};
+}
 
-// Prompt user to add Frame and enable notifications
-export const promptAddFrameAndNotifications = async (): Promise<{
+// Sign out
+export function signOut(): void {
+  currentUser = null;
+}
+
+/**
+ * Prompt the user to add the frame and enable notifications
+ * According to Farcaster docs, adding a frame includes enabling notifications by default
+ */
+export async function promptAddFrameAndNotifications(): Promise<{ 
   added: boolean;
-  notificationDetails?: NotificationDetails;
-}> => {
+  notificationDetails?: FrameNotificationDetails;
+}> {
   try {
-    // Add the frame to the user's Farcaster client
-    const addResult = await sdk.actions.addFrame();
+    console.log("Starting promptAddFrameAndNotifications...");
     
-    // In the current SDK version, we need to check for success differently
-    const frameAdded = addResult && true; // Replace with proper check based on SDK
+    // Check context first to see if frame is already added
+    const context = await sdk.context;
+    const isAlreadyAdded = context.client?.added || false;
+    const existingNotificationDetails = context.client?.notificationDetails;
     
-    // If frame was successfully added, try to get notification permissions
-    // Note: requestNotificationPermission might not be available directly
-    if (frameAdded) {
-      try {
-        // This is a placeholder - implement proper notification request based on SDK version
-        console.warn('Notification permission request is a placeholder - implement properly');
-        
-        return {
-          added: true,
-          notificationDetails: { granted: true }
-        };
-      } catch (notifError) {
-        console.error('Error requesting notifications:', notifError);
-        return { added: true };
-      }
+    if (isAlreadyAdded && existingNotificationDetails) {
+      console.log("Frame is already added with notifications, skipping prompt");
+      return {
+        added: true,
+        notificationDetails: existingNotificationDetails
+      };
     }
     
-    return { added: frameAdded };
+    // Only prompt if not already added
+    console.log("Calling sdk.actions.addFrame()...");
+    await sdk.actions.addFrame();
+    console.log("sdk.actions.addFrame() completed");
+    
+    // Get updated context
+    console.log("Getting SDK context...");
+    const updatedContext = await sdk.context;
+    console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
+    
+    const isAdded = updatedContext.client?.added || false;
+    const notificationDetails = updatedContext.client?.notificationDetails;
+    console.log("Frame status:", { isAdded, notificationDetails });
+    
+    // Update the user state if successful
+    if (currentUser) {
+      currentUser.hasAddedApp = isAdded;
+      currentUser.hasEnabledNotifications = !!notificationDetails;
+      console.log("Updated currentUser:", JSON.stringify(currentUser, null, 2));
+    }
+    
+    // If notification details are available, store them in our database
+    if (isAdded && notificationDetails && updatedContext.user?.fid) {
+      console.log("Frame added successfully with notification details. Storing token...");
+      try {
+        // Send to your backend API
+        console.log("Storing notification token for FID:", updatedContext.user.fid);
+        const response = await fetch('/api/store-notification-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            fid: updatedContext.user.fid, 
+            token: notificationDetails.token, 
+            url: notificationDetails.url 
+          })
+        });
+        
+        const data = await response.json();
+        console.log("Token storage response:", data);
+
+        // Send welcome notification
+        console.log("Sending welcome notification...");
+        try {
+          const notificationResponse = await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              targetFids: [updatedContext.user.fid],
+              category: 'welcome'
+            })
+          });
+          console.log("Welcome notification response:", await notificationResponse.json());
+        } catch (notificationError) {
+          console.error("Error sending welcome notification:", notificationError);
+          // Continue even if notification fails
+        }
+      } catch (tokenError) {
+        console.error("Error storing notification token:", tokenError);
+        // Continue even if token storage fails
+      }
+    } else {
+      console.log("Frame not added or missing notification details:", {
+        isAdded,
+        hasFid: !!updatedContext.user?.fid,
+        hasNotificationDetails: !!notificationDetails
+      });
+    }
+    
+    return {
+      added: isAdded,
+      notificationDetails
+    };
   } catch (error) {
-    console.error('Error prompting to add frame:', error);
+    console.error("Error in promptAddFrameAndNotifications:", error);
     return { added: false };
   }
-}; 
+} 

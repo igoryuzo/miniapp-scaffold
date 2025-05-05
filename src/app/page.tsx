@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { signIn, getUser, isSignedIn, AuthUser, promptAddFrameAndNotifications } from '@/lib/auth';
-import { initializeNeynar } from '@/lib/notifications';
 
 export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -14,9 +13,6 @@ export default function Home() {
 
     const initApp = async () => {
       try {
-        // Initialize Neynar
-        initializeNeynar();
-        
         // Check if already signed in
         let currentUser = null;
         if (isSignedIn()) {
@@ -25,7 +21,7 @@ export default function Home() {
         } else {
           // Authenticate silently
           currentUser = await signIn();
-          console.log("User authenticated silently:", currentUser);
+          console.log("User authenticated:", currentUser);
         }
 
         if (mounted && currentUser) {
@@ -42,7 +38,7 @@ export default function Home() {
                 console.log("App successfully added!");
                 if (currentUser) {
                   currentUser.hasAddedApp = true;
-                  currentUser.hasEnabledNotifications = !!result.notificationDetails?.granted;
+                  currentUser.hasEnabledNotifications = !!result.notificationDetails;
                   setUser({...currentUser});
                 }
               } else {
@@ -74,7 +70,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-8">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          DollarChain Mini App
+          MiniApp Scaffold
         </p>
       </div>
 
@@ -86,7 +82,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold mb-4">Hello, {user?.username || 'Guest'}!</h1>
             <p className="text-xl mb-8">
               {user 
-                ? `Welcome to the DollarChain Mini App!` 
+                ? `Welcome to the MiniApp Scaffold!` 
                 : `Please sign in with Farcaster to continue`
               }
             </p>
