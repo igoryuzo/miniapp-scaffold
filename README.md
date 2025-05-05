@@ -142,5 +142,5 @@ MIT
 
 ## References
 
-- [Farcaster Documentation](https://docs.farcaster.xyz/frames)
+- [Farcaster Mini App Docs](https://miniapps.farcaster.xyz/)
 - [Neynar Documentation](https://docs.neynar.com/)
