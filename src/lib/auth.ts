@@ -25,13 +25,6 @@ function generateNonce(): string {
          Math.random().toString(36).substring(2, 15);
 }
 
-    return await operation();
-  } catch (error) {
-    console.warn('Browser API access error:', error);
-    return fallback;
-  }
-}
-
 // Check if user is signed in
 export function isSignedIn(): boolean {
   return !!currentUser;
