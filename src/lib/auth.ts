@@ -180,6 +180,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
     
     // Check context first to see if frame is already added
     const context = await sdk.context;
+    console.log("Initial context:", JSON.stringify(context, null, 2));
     const isAlreadyAdded = context.client?.added || false;
     const existingNotificationDetails = context.client?.notificationDetails;
     
@@ -203,16 +204,39 @@ export async function promptAddFrameAndNotifications(): Promise<{
     
     // Only prompt if not already added
     console.log("Calling sdk.actions.addFrame()...");
-    await sdk.actions.addFrame();
-    console.log("sdk.actions.addFrame() completed");
+    try {
+      await sdk.actions.addFrame();
+      console.log("sdk.actions.addFrame() completed successfully");
+    } catch (error) {
+      // Handle specific error cases
+      const errorString = String(error);
+      console.error("Error in sdk.actions.addFrame():", errorString);
+      
+      if (errorString.includes("RejectedByUser")) {
+        console.log("User chose not to add the app or automatic rejection occurred");
+        // This is an expected path, so we'll just return a false result
+        return { added: false };
+      } else if (errorString.includes("InvalidDomainManifest")) {
+        console.error("Domain manifest validation failed - check your farcaster.json file and webhook URL");
+      }
+      
+      // Rather than rethrowing, we'll continue to try and get context
+      console.log("Continuing after addFrame error to check context");
+    }
     
-    // Get updated context
+    // Get updated context even if addFrame failed
     console.log("Getting SDK context...");
-    const updatedContext = await sdk.context;
-    console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
+    let updatedContext;
+    try {
+      updatedContext = await sdk.context;
+      console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
+    } catch (contextError) {
+      console.error("Error getting updated context:", contextError);
+      return { added: false };
+    }
     
-    const isAdded = updatedContext.client?.added || false;
-    const notificationDetails = updatedContext.client?.notificationDetails;
+    const isAdded = updatedContext?.client?.added || false;
+    const notificationDetails = updatedContext?.client?.notificationDetails;
     console.log("Frame status:", { isAdded, notificationDetails });
     
     // Update the user state if successful
@@ -223,7 +247,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
     }
     
     // If notification details are available, store them in our database
-    if (isAdded && notificationDetails && updatedContext.user?.fid) {
+    if (isAdded && notificationDetails && updatedContext?.user?.fid) {
       console.log("Frame added successfully with notification details. Storing token...");
       try {
         // Send to your backend API
@@ -264,7 +288,7 @@ export async function promptAddFrameAndNotifications(): Promise<{
     } else {
       console.log("Frame not added or missing notification details:", {
         isAdded,
-        hasFid: !!updatedContext.user?.fid,
+        hasFid: !!updatedContext?.user?.fid,
         hasNotificationDetails: !!notificationDetails
       });
     }
