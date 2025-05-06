@@ -95,25 +95,49 @@ The scaffold uses Farcaster Mini App SDK for authentication. The main authentica
 
 ### Notifications
 
-The notification system is built using Neynar. The main notification logic is in:
+The notification system is built using Neynar's webhooks and notification APIs. The scaffold is set up to delegate all webhook processing to Neynar, which simplifies the implementation and ensures reliable notification delivery.
 
-- `src/lib/neynar.ts` - Client-side notification helpers
-- `src/app/api/send-notification/route.ts` - API route for sending notifications
-- `src/app/api/store-notification-token/route.ts` - API route for storing notification tokens
+Key components of the notification system:
+
+- `src/app/api/send-notification/route.ts` - API route for sending notifications via Neynar
+- `public/.well-known/farcaster.json` - Contains the Neynar webhook URL for event processing
 
 #### Neynar Webhook Configuration
 
-This scaffold uses Neynar for handling notifications, which requires a specific webhook URL configuration in your manifest file:
+This scaffold uses Neynar for handling notifications and webhook events:
 
-1. Create a Neynar account and create a new Mini App at [https://neynar.com](https://neynar.com)
+1. Create a Neynar account and set up a Mini App at [https://neynar.com](https://neynar.com)
 2. Get your app-specific webhook URL from Neynar's dashboard (format: `https://api.neynar.com/f/app/{app-id}/event`)
-3. Update the `webhookUrl` in your `public/.well-known/farcaster.json` manifest file to use this Neynar endpoint:
+3. Set the `webhookUrl` in your `public/.well-known/farcaster.json` manifest file to this Neynar endpoint
+4. Set your `NEYNAR_API_KEY` in your environment variables
 
-```json
-"webhookUrl": "https://api.neynar.com/f/app/YOUR-APP-ID-HERE/event"
+Benefits of using Neynar for notifications:
+- Automatic handling of frame add/remove events
+- Proper management of notification tokens
+- Automatic filtering of revoked notification permissions
+- Analytics for notification delivery and engagement
+
+The notification flow works as follows:
+1. When users add your app, their notification token is sent to Neynar via the webhook
+2. Your app calls the `publishFrameNotifications` Neynar API to send notifications
+3. Neynar handles delivery to the appropriate clients and manages token state
+
+Example code for sending a notification:
+
+```typescript
+// Send a welcome notification
+const notification = {
+  title: "Congrats! 🎉",
+  body: "Welcome notifications are working!",
+  target_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+};
+
+// Send to a specific user or group of users
+const response = await neynarClient.publishFrameNotifications({
+  targetFids: [userFid],
+  notification,
+});
 ```
-
-This webhook URL is required for proper domain validation when users add your app in Warpcast.
 
 ### Data Storage
 

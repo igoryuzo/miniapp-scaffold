@@ -150,7 +150,7 @@ export function signOut(): void {
 
 /**
  * Handle the case when a user removes the Mini App
- * This will clean up all notification tokens for the user
+ * This will be managed by Neynar through the webhook URL
  */
 async function handleFrameRemoved(fid: number): Promise<void> {
   if (!fid) {
@@ -158,53 +158,17 @@ async function handleFrameRemoved(fid: number): Promise<void> {
     return;
   }
   
-  console.log(`Handling app removal for FID ${fid}. Cleaning up notification tokens...`);
+  console.log(`Handling app removal for FID ${fid}`);
   
-  try {
-    // Delete notification tokens from the database
-    const response = await fetch('/api/delete-notification-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fid })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to delete notification tokens: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log(`Token deletion successful for FID ${fid}:`, data);
-    
-    // Update current user if exists
-    if (currentUser) {
-      console.log(`Updating current user status for FID ${fid}`);
-      currentUser.hasAddedApp = false;
-      currentUser.hasEnabledNotifications = false;
-    }
-    
-    // Log to webhook events table if possible
-    try {
-      await fetch('/api/webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'frame.removed',
-          fid: fid,
-          timestamp: new Date().toISOString()
-        })
-      });
-    } catch (webhookError) {
-      // Just log the error, don't interrupt the flow
-      console.warn("Could not log frame removal to webhook:", webhookError);
-    }
-  } catch (error) {
-    console.error(`Error handling app removal for FID ${fid}:`, error);
-    // Still update the user object even if API call fails
-    if (currentUser) {
-      currentUser.hasAddedApp = false;
-      currentUser.hasEnabledNotifications = false;
-    }
+  // Update current user if exists
+  if (currentUser) {
+    console.log(`Updating current user status for FID ${fid}`);
+    currentUser.hasAddedApp = false;
+    currentUser.hasEnabledNotifications = false;
   }
+  
+  // No need to manually delete notification tokens as Neynar manages this
+  // through the webhook URL defined in farcaster.json
 }
 
 /**
@@ -270,44 +234,26 @@ export async function promptAddFrameAndNotifications(): Promise<{
       console.log("Updated currentUser:", JSON.stringify(currentUser, null, 2));
     }
     
-    // If notification details are available, store them in our database
+    // If notification details are available, we don't need to store them
+    // Neynar will automatically handle this through the webhook URL
     if (isAdded && notificationDetails && updatedContext?.user?.fid) {
-      console.log("Frame added successfully with notification details. Storing token...");
+      console.log("Frame added successfully with notification details.");
+      
+      // Send welcome notification
+      console.log("Sending welcome notification...");
       try {
-        // Send to your backend API
-        console.log("Storing notification token for FID:", updatedContext.user.fid);
-        const response = await fetch('/api/store-notification-token', {
+        const notificationResponse = await fetch('/api/send-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            fid: updatedContext.user.fid, 
-            token: notificationDetails.token, 
-            url: notificationDetails.url 
+          body: JSON.stringify({
+            targetFids: [updatedContext.user.fid],
+            category: 'welcome'
           })
         });
-        
-        const data = await response.json();
-        console.log("Token storage response:", data);
-
-        // Send welcome notification
-        console.log("Sending welcome notification...");
-        try {
-          const notificationResponse = await fetch('/api/send-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              targetFids: [updatedContext.user.fid],
-              category: 'welcome'
-            })
-          });
-          console.log("Welcome notification response:", await notificationResponse.json());
-        } catch (notificationError) {
-          console.error("Error sending welcome notification:", notificationError);
-          // Continue even if notification fails
-        }
-      } catch (tokenError) {
-        console.error("Error storing notification token:", tokenError);
-        // Continue even if token storage fails
+        console.log("Welcome notification response:", await notificationResponse.json());
+      } catch (notificationError) {
+        console.error("Error sending welcome notification:", notificationError);
+        // Continue even if notification fails
       }
     } else {
       console.log("Frame not added or missing notification details:", {

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { getNotificationTokensForUsers } from '../../../lib/supabase';
 
 // Initialize Neynar client with API key
-const neynarClient = new NeynarAPIClient({ apiKey: process.env.NEYNAR_API_KEY! });
+const neynarClient = new NeynarAPIClient({ 
+  apiKey: process.env.NEYNAR_API_KEY!
+});
 
 export async function POST(request: Request) {
   try {
@@ -14,16 +15,6 @@ export async function POST(request: Request) {
 
     if (!targetFids || !targetFids.length || !category) {
       return NextResponse.json({ error: 'Missing targetFids or category' }, { status: 400 });
-    }
-
-    // Fetch notification tokens from Supabase for the target FIDs
-    const { data: tokens, error } = await getNotificationTokensForUsers(targetFids);
-
-    if (error || !tokens?.length) {
-      return NextResponse.json(
-        { error: 'No valid notification tokens found' }, 
-        { status: 400 }
-      );
     }
 
     // Create notification content based on category
@@ -54,7 +45,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
     }
 
-    // Send notifications via Neynar
+    // Send notifications directly via Neynar API
+    // Neynar will handle filtering out users who have disabled notifications
     const response = await neynarClient.publishFrameNotifications({
       targetFids,
       notification,
