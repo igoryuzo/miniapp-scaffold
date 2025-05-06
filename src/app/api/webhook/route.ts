@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../lib/supabase';
+import { supabaseAdmin, removeNotificationToken } from '../../../lib/supabase';
 
 // Type definitions for webhook data
 interface WebhookData {
@@ -19,6 +19,16 @@ interface UserCreatedData extends WebhookData {
 interface FrameAddedData extends WebhookData {
   fid?: number;
   frame_id?: string;
+  notificationDetails?: {
+    url: string;
+    token: string;
+  };
+}
+
+interface FrameRemovedData extends WebhookData {
+  fid?: number;
+  frame_id?: string;
+  event: 'frame_removed' | 'frame-removed';
 }
 
 interface NotificationData extends WebhookData {
@@ -85,8 +95,21 @@ export async function POST(request: Request) {
         break;
         
       case 'frame.added':
+      case 'frame_added':
         // Handle frame added event
         await handleFrameAdded(body as FrameAddedData);
+        break;
+        
+      case 'frame.removed':
+      case 'frame_removed':
+        // Handle frame removed event - delete notification tokens
+        await handleFrameRemoved(body as FrameRemovedData);
+        break;
+        
+      case 'notifications.disabled':
+      case 'notifications_disabled':
+        // Handle notifications disabled - delete notification tokens
+        await handleNotificationsDisabled(body as FrameRemovedData);
         break;
         
       case 'notification.sent':
@@ -139,13 +162,38 @@ async function handleUserCreated(data: UserCreatedData) {
 // Handler for frame added events
 async function handleFrameAdded(data: FrameAddedData) {
   try {
-    const { fid, frame_id } = data;
+    const { fid, frame_id, notificationDetails } = data;
     if (!fid) {
       console.error('Missing FID in frame.added webhook:', data);
       return;
     }
     
     console.log(`Frame added webhook for FID: ${fid}, frame: ${frame_id}`);
+    
+    // If notification details are available, store the token
+    if (notificationDetails && notificationDetails.token && notificationDetails.url) {
+      try {
+        console.log(`Storing notification token for FID ${fid}:`, notificationDetails);
+        
+        const { data: tokenData, error: tokenError } = await supabaseAdmin
+          .from('notification_tokens')
+          .upsert({
+            fid: fid,
+            token: notificationDetails.token,
+            url: notificationDetails.url,
+            updated_at: new Date().toISOString()
+          })
+          .select();
+          
+        if (tokenError) {
+          console.error('Error storing notification token:', tokenError);
+        } else {
+          console.log('Successfully stored notification token:', tokenData);
+        }
+      } catch (tokenError) {
+        console.error('Error processing notification token:', tokenError);
+      }
+    }
     
     // Store in your database
     await supabaseAdmin
@@ -158,6 +206,76 @@ async function handleFrameAdded(data: FrameAddedData) {
       });
   } catch (error) {
     console.error('Error handling frame.added webhook:', error);
+  }
+}
+
+// Handler for frame removed events
+async function handleFrameRemoved(data: FrameRemovedData) {
+  try {
+    const { fid } = data;
+    if (!fid) {
+      console.error('Missing FID in frame.removed webhook:', data);
+      return;
+    }
+    
+    console.log(`Frame removed webhook for FID: ${fid}. Deleting notification tokens...`);
+    
+    // Delete all notification tokens for this user
+    const { data: deletedData, error: deleteError } = await removeNotificationToken(fid);
+    
+    if (deleteError) {
+      console.error(`Error deleting notification tokens for FID ${fid}:`, deleteError);
+    } else {
+      const deletedCount = deletedData ? deletedData.length : 0;
+      console.log(`Successfully deleted ${deletedCount} notification tokens for FID ${fid}`);
+    }
+    
+    // Store the event
+    await supabaseAdmin
+      .from('webhook_events')
+      .insert({
+        event_type: 'frame.removed',
+        fid: fid,
+        data: data,
+        processed: true
+      });
+  } catch (error) {
+    console.error('Error handling frame.removed webhook:', error);
+  }
+}
+
+// Handler for notifications disabled events
+async function handleNotificationsDisabled(data: FrameRemovedData) {
+  try {
+    const { fid } = data;
+    if (!fid) {
+      console.error('Missing FID in notifications.disabled webhook:', data);
+      return;
+    }
+    
+    console.log(`Notifications disabled webhook for FID: ${fid}. Deleting notification tokens...`);
+    
+    // Delete all notification tokens for this user
+    const { data: deletedData, error: deleteError } = await removeNotificationToken(fid);
+    
+    if (deleteError) {
+      console.error(`Error deleting notification tokens for FID ${fid}:`, deleteError);
+    } else {
+      const deletedCount = deletedData ? deletedData.length : 0;
+      console.log(`Successfully deleted ${deletedCount} notification tokens for FID ${fid}`);
+    }
+    
+    // Store the event
+    await supabaseAdmin
+      .from('webhook_events')
+      .insert({
+        event_type: 'notifications.disabled',
+        fid: fid,
+        data: data,
+        processed: true
+      });
+  } catch (error) {
+    console.error('Error handling notifications.disabled webhook:', error);
   }
 }
 
