@@ -2,7 +2,22 @@
 
 A quick-start scaffold for Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.
 
-```markdown
+```
+# Environment Variables for .env.local and Vercel
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Neynar API Key for notifications
+NEYNAR_API_KEY=your_neynar_api_key
+
+# Application URL (used for notification links)
+# Use localhost for development, your actual domain for production
+NEXT_PUBLIC_APP_URL=https://your-app-domain.com
+```
+
 # Farcaster Mini App Creation Prompt
 
 ## Task
