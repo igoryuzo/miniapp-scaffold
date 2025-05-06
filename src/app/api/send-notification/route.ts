@@ -63,6 +63,11 @@ export async function POST(request: Request) {
     try {
       // Send notifications directly via Neynar API
       // Neynar will handle filtering out users who have disabled notifications
+      console.log(`📞 Calling Neynar API with params:`, {
+        targetFids,
+        notification
+      });
+      
       const response = await neynarClient.publishFrameNotifications({
         targetFids,
         notification,

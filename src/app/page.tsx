@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn, getUser, isSignedIn, AuthUser, promptAddFrameAndNotifications } from '@/lib/auth';
+import { 
+  signIn, 
+  getUser, 
+  isSignedIn, 
+  AuthUser, 
+  promptAddFrameAndNotifications,
+  sendWelcomeNotification
+} from '@/lib/auth';
 import { sdk } from '@farcaster/frame-sdk';
 
 export default function Home() {
@@ -62,6 +69,17 @@ export default function Home() {
                   currentUser.hasAddedApp = true;
                   currentUser.hasEnabledNotifications = !!result.notificationDetails;
                   setUser({...currentUser});
+                  
+                  // Explicitly send welcome notification when app is added
+                  if (currentUser.fid) {
+                    console.log("Sending explicit welcome notification...");
+                    try {
+                      const notificationSent = await sendWelcomeNotification(currentUser.fid);
+                      console.log("Welcome notification sent result:", notificationSent);
+                    } catch (notificationError) {
+                      console.error("Error sending welcome notification:", notificationError);
+                    }
+                  }
                 }
               } else {
                 console.log("Failed to add app automatically");

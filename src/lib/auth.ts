@@ -298,4 +298,36 @@ export async function promptAddFrameAndNotifications(): Promise<{
     console.error("Error in promptAddFrameAndNotifications:", error);
     return { added: false };
   }
+}
+
+/**
+ * Send a welcome notification to a user
+ */
+export async function sendWelcomeNotification(fid: number): Promise<boolean> {
+  console.log(`🎉 Explicitly sending welcome notification to FID ${fid}...`);
+  
+  try {
+    const notificationResponse = await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        targetFids: [fid],
+        category: 'welcome'
+      }),
+    });
+    
+    if (notificationResponse.ok) {
+      const responseData = await notificationResponse.json();
+      console.log("✅ Welcome notification sent successfully:", responseData);
+      return true;
+    } else {
+      console.error("❌ Failed to send welcome notification:", await notificationResponse.text());
+      return false;
+    }
+  } catch (error) {
+    console.error("❌ Error sending welcome notification:", error);
+    return false;
+  }
 } 
