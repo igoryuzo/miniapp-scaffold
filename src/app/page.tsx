@@ -174,10 +174,10 @@ export default function Home() {
                 href="https://github.com/igoryuzo/miniapp-scaffold" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 hover:underline"
+                className="inline-flex items-center justify-center gap-2 hover:bg-gray-100 px-4 py-2 rounded-lg border border-gray-300 transition-colors"
               >
                 <img src="/images/github-mark.svg" alt="GitHub" className="w-6 h-6" />
-                Star this GitHub Repo
+                <span>Star this GitHub Repo</span>
               </a>
             </p>
             
