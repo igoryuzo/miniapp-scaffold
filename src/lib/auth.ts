@@ -307,27 +307,81 @@ export async function sendWelcomeNotification(fid: number): Promise<boolean> {
   console.log(`🎉 Explicitly sending welcome notification to FID ${fid}...`);
   
   try {
-    const notificationResponse = await fetch('/api/send-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        targetFids: [fid],
-        category: 'welcome'
-      }),
-    });
+    // Add a slight delay before sending notification (helps with race conditions)
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    if (notificationResponse.ok) {
-      const responseData = await notificationResponse.json();
-      console.log("✅ Welcome notification sent successfully:", responseData);
-      return true;
-    } else {
-      console.error("❌ Failed to send welcome notification:", await notificationResponse.text());
-      return false;
+    // Try to get the latest context to see if notification permissions were granted
+    try {
+      const context = await sdk.context;
+      console.log(`📊 Current notification status: ${!!context?.client?.notificationDetails ? "Enabled" : "Not enabled"}`);
+      
+      // If notifications aren't already enabled, try to request them again
+      if (!context?.client?.notificationDetails) {
+        console.log("🔄 Attempting to request notifications permissions again before sending welcome...");
+        try {
+          // Try to get notification permissions via addFrame
+          await sdk.actions.addFrame();
+          
+          // Check if successful
+          const updatedContext = await sdk.context;
+          console.log(`📊 Updated notification status: ${!!updatedContext?.client?.notificationDetails ? "Enabled" : "Still not enabled"}`);
+        } catch (permissionError) {
+          console.error("Error requesting notification permissions:", permissionError);
+        }
+      }
+    } catch (contextError) {
+      console.error("Error getting notification context:", contextError);
     }
+    
+    // Attempt to send notification with retry logic
+    let success = false;
+    let attempts = 0;
+    const maxAttempts = 2;
+    
+    while (!success && attempts < maxAttempts) {
+      attempts++;
+      console.log(`📤 Sending welcome notification (attempt ${attempts}/${maxAttempts})...`);
+      
+      try {
+        const notificationResponse = await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetFids: [fid],
+            category: 'welcome'
+          }),
+        });
+        
+        if (notificationResponse.ok) {
+          const responseData = await notificationResponse.json();
+          console.log(`✅ Welcome notification sent successfully (attempt ${attempts}):`, responseData);
+          success = true;
+        } else {
+          const errorText = await notificationResponse.text();
+          console.error(`❌ Failed to send welcome notification (attempt ${attempts}):`, errorText);
+          
+          // Wait before retry
+          if (attempts < maxAttempts) {
+            console.log(`⏱️ Waiting 2 seconds before retry...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Error sending welcome notification (attempt ${attempts}):`, error);
+        
+        // Wait before retry
+        if (attempts < maxAttempts) {
+          console.log(`⏱️ Waiting 2 seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    }
+    
+    return success;
   } catch (error) {
-    console.error("❌ Error sending welcome notification:", error);
+    console.error("❌ Error in sendWelcomeNotification:", error);
     return false;
   }
 } 

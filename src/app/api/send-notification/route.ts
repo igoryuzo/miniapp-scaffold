@@ -60,34 +60,53 @@ export async function POST(request: Request) {
     console.log(`🔑 Using Neynar API Key: ${process.env.NEYNAR_API_KEY ? "✅ Set" : "❌ Not Set"}`);
     console.log(`🌐 APP_URL: ${process.env.NEXT_PUBLIC_APP_URL || "Not set"}`);
 
-    try {
-      // Send notifications directly via Neynar API
-      // Neynar will handle filtering out users who have disabled notifications
-      console.log(`📞 Calling Neynar API with params:`, {
-        targetFids,
-        notification
-      });
-      
-      const response = await neynarClient.publishFrameNotifications({
-        targetFids,
-        notification,
-      });
-      
-      console.log(`✅ Notification sent successfully: ${JSON.stringify(response)}`);
-      
-      return NextResponse.json({ 
-        success: true, 
-        sentTo: targetFids.length,
-        response 
-      });
-    } catch (apiError: unknown) {
-      const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown API error';
-      console.error(`❌ Neynar API error: ${errorMessage}`, apiError);
-      return NextResponse.json(
-        { error: `Neynar API error: ${errorMessage}` }, 
-        { status: 500 }
-      );
+    // Attempt to send with retry logic
+    let attempts = 0;
+    const maxAttempts = 2;
+    let lastError = null;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        // Send notifications directly via Neynar API
+        // Neynar will handle filtering out users who have disabled notifications
+        console.log(`📞 Calling Neynar API (attempt ${attempts}/${maxAttempts}) with params:`, {
+          targetFids,
+          notification
+        });
+        
+        const response = await neynarClient.publishFrameNotifications({
+          targetFids,
+          notification,
+        });
+        
+        console.log(`✅ Notification sent successfully (attempt ${attempts}): ${JSON.stringify(response)}`);
+        
+        return NextResponse.json({ 
+          success: true, 
+          sentTo: targetFids.length,
+          response,
+          attempt: attempts
+        });
+      } catch (apiError: unknown) {
+        lastError = apiError;
+        const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown API error';
+        console.error(`❌ Neynar API error (attempt ${attempts}/${maxAttempts}): ${errorMessage}`, apiError);
+        
+        // Only retry if not the last attempt
+        if (attempts < maxAttempts) {
+          console.log(`⏱️ Retrying in 1 second...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
+    
+    // If we got here, all attempts failed
+    const errorMessage = lastError instanceof Error ? lastError.message : 'Unknown API error after retries';
+    return NextResponse.json(
+      { error: `Neynar API error after ${maxAttempts} attempts: ${errorMessage}` }, 
+      { status: 500 }
+    );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`❌ Error sending notification: ${errorMessage}`, error);
