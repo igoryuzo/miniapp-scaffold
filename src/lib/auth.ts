@@ -202,44 +202,69 @@ export async function promptAddFrameAndNotifications(): Promise<{
       };
     }
     
-    // Only prompt if not already added
-    try {
-      console.log("Calling sdk.actions.addFrame()...");
-      await sdk.actions.addFrame();
-      console.log("sdk.actions.addFrame() completed");
-    } catch (error) {
-      console.error("Error adding frame:", error);
-      return { added: false };
-    }
+    // First ensure the frame is added
+    console.log("Calling sdk.actions.addFrame()...");
+    await sdk.actions.addFrame();
+    console.log("sdk.actions.addFrame() completed");
     
-    // Get updated context
-    let updatedContext;
-    try {
-      console.log("Getting SDK context...");
-      updatedContext = await sdk.context;
-      console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
-    } catch (error) {
-      console.error("Error getting updated SDK context:", error);
-      return { added: false };
-    }
+    // Get updated context after adding frame
+    console.log("Getting SDK context...");
+    const updatedContext = await sdk.context;
+    console.log("SDK context received:", JSON.stringify(updatedContext, null, 2));
     
+    // Check if frame was successfully added
     const isAdded = updatedContext?.client?.added || false;
-    const notificationDetails = updatedContext?.client?.notificationDetails;
-    console.log("Frame status:", { isAdded, notificationDetails });
+    let notificationDetails = updatedContext?.client?.notificationDetails;
     
-    // Update the user state if successful
+    console.log(`Frame status: {isAdded: ${isAdded}, notificationDetails: ${notificationDetails ? 'defined' : 'undefined'}}`);
+    
+    // Update current user if exists
     if (currentUser) {
       currentUser.hasAddedApp = isAdded;
       currentUser.hasEnabledNotifications = !!notificationDetails;
       console.log("Updated currentUser:", JSON.stringify(currentUser, null, 2));
     }
     
-    // If notification details are available, we don't need to store them
-    // Neynar will automatically handle this through the webhook URL
-    if (isAdded && notificationDetails && updatedContext?.user?.fid) {
-      console.log("🎉 Frame added successfully with notification details.");
-      console.log(`🔔 User FID: ${updatedContext.user.fid}`);
-      console.log(`🔑 Notification token available: ${!!notificationDetails.token}`);
+    // If we have the frame added but no notification details, request them
+    if (isAdded && !notificationDetails && updatedContext?.user?.fid) {
+      console.log("Frame added but missing notification details. Requesting notifications...");
+      try {
+        // According to the docs, addFrame should handle both frame addition and notification permissions
+        // Let's call it again to try to get notification details
+        const frameResult = await sdk.actions.addFrame();
+        console.log("Re-attempt addFrame result:", JSON.stringify(frameResult, null, 2));
+        
+        // Get updated context after requesting notifications
+        const notificationContext = await sdk.context;
+        notificationDetails = notificationContext?.client?.notificationDetails;
+        
+        console.log("Notification status after request:", 
+          notificationDetails ? "Notifications enabled" : "Notifications still disabled");
+        
+        if (currentUser) {
+          currentUser.hasEnabledNotifications = !!notificationDetails;
+        }
+      } catch (notificationError) {
+        console.error("Error requesting notification permissions:", notificationError);
+      }
+    }
+    
+    // Final status check
+    const hasFid = !!updatedContext?.user?.fid;
+    const hasNotificationDetails = !!notificationDetails;
+    console.log(`⚠️ Frame status check: {isAdded: ${isAdded}, hasFid: ${hasFid}, hasNotificationDetails: ${hasNotificationDetails}}`);
+    
+    // Send a welcome notification if the frame was added, even if notification details aren't available
+    // Notification will only appear if permissions are enabled
+    if (isAdded && updatedContext?.user?.fid) {
+      console.log("🎉 Frame added successfully!");
+      
+      if (notificationDetails) {
+        console.log(`🔔 User FID: ${updatedContext.user.fid}`);
+        console.log(`🔑 Notification token available: ${!!notificationDetails.token}`);
+      } else {
+        console.log(`⚠️ No notification details available, but still attempting to send welcome notification`);
+      }
       
       // Send welcome notification
       console.log("📤 Attempting to send welcome notification...");
@@ -252,26 +277,17 @@ export async function promptAddFrameAndNotifications(): Promise<{
           body: JSON.stringify({
             targetFids: [updatedContext.user.fid],
             category: 'welcome'
-          })
+          }),
         });
         
-        if (!notificationResponse.ok) {
-          const errorData = await notificationResponse.json();
-          console.error(`❌ Welcome notification API responded with error: ${notificationResponse.status}`, errorData);
+        if (notificationResponse.ok) {
+          console.log("✅ Welcome notification sent successfully!");
         } else {
-          const responseData = await notificationResponse.json();
-          console.log("✅ Welcome notification API response:", responseData);
+          console.error("❌ Failed to send welcome notification:", await notificationResponse.text());
         }
-      } catch (notificationError) {
-        console.error("❌ Error sending welcome notification:", notificationError);
-        // Continue even if notification fails
+      } catch (error) {
+        console.error("❌ Error sending welcome notification:", error);
       }
-    } else {
-      console.log("⚠️ Frame not added or missing notification details:", {
-        isAdded,
-        hasFid: !!updatedContext?.user?.fid,
-        hasNotificationDetails: !!notificationDetails
-      });
     }
     
     return {
