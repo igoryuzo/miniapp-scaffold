@@ -1,3 +1,8 @@
+/**
+ * This is a client component where the main application UI is defined.
+ * It handles user authentication, app status, and notification permissions.
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';

@@ -44,7 +44,7 @@ In your Supabase project, create the following tables by going to the **SQL Edit
 3. Create a "New Query"
 4. Paste the SQL below and click "Run"
 
-#### 1. `users` table
+#### `users` table
 
 ```sql
 create table users (
@@ -55,22 +55,6 @@ create table users (
   updated_at timestamp with time zone default now() not null
 );
 ```
-
-#### 2. `notification_tokens` table
-
-```sql
-create table notification_tokens (
-  id uuid primary key default uuid_generate_v4(),
-  fid bigint not null references users(fid) on delete cascade,
-  token text not null,
-  url text not null,
-  created_at timestamp with time zone default now() not null,
-  updated_at timestamp with time zone default now() not null,
-  unique (fid)
-);
-```
-
-You can also run both commands together in a single query in the SQL Editor.
 
 ### Installation
 
