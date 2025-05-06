@@ -38,6 +38,7 @@ Create a Hello World Farcaster Mini App using Next.js and TypeScript, following 
 - Set up the Supabase database tables as described below
 - Configure webhooks for notification handling through Neynar
 - Include proper environment configuration
+- Use Yarn for all installations
 
 ## Deliverables
 1. Complete codebase with all required files
