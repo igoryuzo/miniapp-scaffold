@@ -78,7 +78,7 @@ Developing Farcaster Mini Apps involves several repetitive setup steps and integ
 
 ## Project Structure
 
-```
+
 /
 ├── src/
 │   ├── app/                    # Next.js app directory
@@ -107,7 +107,7 @@ Developing Farcaster Mini Apps involves several repetitive setup steps and integ
 ├── next.config.ts              # Next.js configuration
 ├── package.json                # Dependencies
 └── README.md                   # Project documentation
-```
+
 
 ## Core Components
 
@@ -176,7 +176,7 @@ The main application UI in `src/app/page.tsx` provides:
 
 ### Authentication Flow
 
-```javascript
+javascript
 // Authentication flow overview from src/lib/auth.ts
 export async function signIn(): Promise<AuthUser | null> {
   try {
@@ -238,11 +238,11 @@ export async function signIn(): Promise<AuthUser | null> {
     throw error;
   }
 }
-```
+
 
 ### Notification Sending
 
-```javascript
+javascript
 // Notification sending from src/app/api/send-notification/route.ts
 export async function POST(request: Request) {
   try {
@@ -290,11 +290,11 @@ export async function POST(request: Request) {
     // Handle general errors
   }
 }
-```
+
 
 ### Supabase Integration
 
-```javascript
+javascript
 // Supabase helpers from src/lib/supabase.ts
 // Regular client for user-level operations
 export const supabase = createClient(
@@ -322,11 +322,11 @@ export async function saveUser(userData: {
     })
     .select();
 }
-```
+
 
 ### Manifest Configuration
 
-```json
+json
 // Example farcaster.json
 {
   "accountAssociation": {
@@ -351,7 +351,7 @@ export async function saveUser(userData: {
     "tagline": "Mini App Scaffolding."
   }
 }
-```
+
 
 ## Common Challenges and Solutions
 
@@ -394,7 +394,7 @@ Welcome notifications should be sent reliably when users add the app. The scaffo
 
 Create a `.env.local` file in the root of your project with the following variables:
 
-```
+
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -405,13 +405,13 @@ NEYNAR_API_KEY=your_neynar_api_key
 
 # Application URL (used for notification links)
 NEXT_PUBLIC_APP_URL=https://your-app-domain.com
-```
+
 
 ### Database Setup
 
 In your Supabase project, create this table:
 
-```sql
+sql
 -- Users table
 create table users (
   fid bigint primary key,
@@ -420,7 +420,7 @@ create table users (
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null
 );
-```
+
 
 ### Setting Up Neynar
 
