@@ -237,26 +237,37 @@ export async function promptAddFrameAndNotifications(): Promise<{
     // If notification details are available, we don't need to store them
     // Neynar will automatically handle this through the webhook URL
     if (isAdded && notificationDetails && updatedContext?.user?.fid) {
-      console.log("Frame added successfully with notification details.");
+      console.log("🎉 Frame added successfully with notification details.");
+      console.log(`🔔 User FID: ${updatedContext.user.fid}`);
+      console.log(`🔑 Notification token available: ${!!notificationDetails.token}`);
       
       // Send welcome notification
-      console.log("Sending welcome notification...");
+      console.log("📤 Attempting to send welcome notification...");
       try {
         const notificationResponse = await fetch('/api/send-notification', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             targetFids: [updatedContext.user.fid],
             category: 'welcome'
           })
         });
-        console.log("Welcome notification response:", await notificationResponse.json());
+        
+        if (!notificationResponse.ok) {
+          const errorData = await notificationResponse.json();
+          console.error(`❌ Welcome notification API responded with error: ${notificationResponse.status}`, errorData);
+        } else {
+          const responseData = await notificationResponse.json();
+          console.log("✅ Welcome notification API response:", responseData);
+        }
       } catch (notificationError) {
-        console.error("Error sending welcome notification:", notificationError);
+        console.error("❌ Error sending welcome notification:", notificationError);
         // Continue even if notification fails
       }
     } else {
-      console.log("Frame not added or missing notification details:", {
+      console.log("⚠️ Frame not added or missing notification details:", {
         isAdded,
         hasFid: !!updatedContext?.user?.fid,
         hasNotificationDetails: !!notificationDetails

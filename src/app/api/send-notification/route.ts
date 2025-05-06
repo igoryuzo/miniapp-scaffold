@@ -6,14 +6,24 @@ const neynarClient = new NeynarAPIClient({
   apiKey: process.env.NEYNAR_API_KEY!
 });
 
+// Log the API key (masked for security) to ensure it's set
+console.log("Neynar API Key configured:", process.env.NEYNAR_API_KEY 
+  ? `${process.env.NEYNAR_API_KEY.substring(0, 4)}...${process.env.NEYNAR_API_KEY.substring(process.env.NEYNAR_API_KEY.length - 4)}` 
+  : "NOT SET");
+
 export async function POST(request: Request) {
   try {
+    console.log("🔔 Notification request received");
+    
     const { targetFids, category }: { 
       targetFids: number[]; 
       category: 'nearby_users' | 'events' | 'welcome' 
     } = await request.json();
 
+    console.log(`📋 Notification details: category=${category}, targetFids=${JSON.stringify(targetFids)}`);
+
     if (!targetFids || !targetFids.length || !category) {
+      console.error("❌ Missing targetFids or category");
       return NextResponse.json({ error: 'Missing targetFids or category' }, { status: 400 });
     }
 
@@ -42,25 +52,42 @@ export async function POST(request: Request) {
         };
         break;
       default:
+        console.error(`❌ Invalid category: ${category}`);
         return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
     }
 
-    // Send notifications directly via Neynar API
-    // Neynar will handle filtering out users who have disabled notifications
-    const response = await neynarClient.publishFrameNotifications({
-      targetFids,
-      notification,
-    });
+    console.log(`📤 Sending notification: ${JSON.stringify(notification)}`);
+    console.log(`🔑 Using Neynar API Key: ${process.env.NEYNAR_API_KEY ? "✅ Set" : "❌ Not Set"}`);
+    console.log(`🌐 APP_URL: ${process.env.NEXT_PUBLIC_APP_URL || "Not set"}`);
 
-    return NextResponse.json({ 
-      success: true, 
-      sentTo: targetFids.length,
-      response 
-    });
-  } catch (error) {
-    console.error('Error sending notification:', error);
+    try {
+      // Send notifications directly via Neynar API
+      // Neynar will handle filtering out users who have disabled notifications
+      const response = await neynarClient.publishFrameNotifications({
+        targetFids,
+        notification,
+      });
+      
+      console.log(`✅ Notification sent successfully: ${JSON.stringify(response)}`);
+      
+      return NextResponse.json({ 
+        success: true, 
+        sentTo: targetFids.length,
+        response 
+      });
+    } catch (apiError: unknown) {
+      const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown API error';
+      console.error(`❌ Neynar API error: ${errorMessage}`, apiError);
+      return NextResponse.json(
+        { error: `Neynar API error: ${errorMessage}` }, 
+        { status: 500 }
+      );
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`❌ Error sending notification: ${errorMessage}`, error);
     return NextResponse.json(
-      { error: 'Failed to send notification' }, 
+      { error: `Failed to send notification: ${errorMessage}` }, 
       { status: 500 }
     );
   }
