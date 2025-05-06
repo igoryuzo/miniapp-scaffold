@@ -1,3 +1,31 @@
+# Farcaster Mini App Creation Prompt
+
+## Task
+Create a Hello World Farcaster Mini App using Next.js and TypeScript, following the documentation below. The app should include:
+1. User authentication with Farcaster
+2. Push notification functionality via Neynar
+3. Database integration with Supabase
+4. Proper manifest configuration
+5. Simple UI that shows the authenticated user's information
+
+## Requirements
+- Use Next.js 15+ with the App Router
+- Create a clean, minimal UI (Tailwind recommended but optional)
+- Implement secure authentication flow with proper error handling
+- Set up the Supabase database tables as described below
+- Configure webhooks for notification handling through Neynar
+- Include proper environment configuration
+
+## Deliverables
+1. Complete codebase with all required files
+2. Instructions for setting up environment variables
+3. Database setup SQL commands
+4. Deployment guidance
+
+Use the detailed documentation below to understand the technical requirements, architecture, and implementation strategies for building the mini app.
+
+---
+
 # Farcaster Mini App Scaffold - Complete Documentation
 
 ## Introduction
