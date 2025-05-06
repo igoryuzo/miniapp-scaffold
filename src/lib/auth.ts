@@ -172,6 +172,45 @@ async function handleFrameRemoved(fid: number): Promise<void> {
 }
 
 /**
+ * Explicitly request notification permissions from the user
+ */
+export async function requestNotificationPermissions(): Promise<boolean> {
+  console.log("🔔 Explicitly requesting notification permissions...");
+  try {
+    // First check current status
+    const context = await sdk.context;
+    const hasNotifications = !!context?.client?.notificationDetails;
+    
+    if (hasNotifications) {
+      console.log("✅ Notifications already enabled!");
+      return true;
+    }
+    
+    // Since there's no direct method for just requesting notifications,
+    // we'll use addFrame which should prompt for notifications if the frame is already added
+    console.log("Calling addFrame to request notification permissions...");
+    const result = await sdk.actions.addFrame();
+    console.log("addFrame result:", JSON.stringify(result, null, 2));
+    
+    // Verify the result
+    const updatedContext = await sdk.context;
+    const nowHasNotifications = !!updatedContext?.client?.notificationDetails;
+    
+    console.log(`Notification status after request: ${nowHasNotifications ? "Enabled ✅" : "Still not enabled ❌"}`);
+    
+    // Update current user if it exists
+    if (currentUser) {
+      currentUser.hasEnabledNotifications = nowHasNotifications;
+    }
+    
+    return nowHasNotifications;
+  } catch (error) {
+    console.error("Error requesting notification permissions:", error);
+    return false;
+  }
+}
+
+/**
  * Prompt the user to add the frame and enable notifications
  * According to Farcaster docs, adding a frame includes enabling notifications by default
  */
@@ -215,37 +254,40 @@ export async function promptAddFrameAndNotifications(): Promise<{
     // Check if frame was successfully added
     const isAdded = updatedContext?.client?.added || false;
     let notificationDetails = updatedContext?.client?.notificationDetails;
+    const hasNotifications = !!notificationDetails;
     
+    // Log more detailed notifications status
     console.log(`Frame status: {isAdded: ${isAdded}, notificationDetails: ${notificationDetails ? 'defined' : 'undefined'}}`);
+    if (notificationDetails) {
+      console.log(`Notification details: token=${notificationDetails.token ? 'exists' : 'missing'}`);
+    }
     
     // Update current user if exists
     if (currentUser) {
       currentUser.hasAddedApp = isAdded;
-      currentUser.hasEnabledNotifications = !!notificationDetails;
+      currentUser.hasEnabledNotifications = hasNotifications;
       console.log("Updated currentUser:", JSON.stringify(currentUser, null, 2));
     }
     
-    // If we have the frame added but no notification details, request them
-    if (isAdded && !notificationDetails && updatedContext?.user?.fid) {
-      console.log("Frame added but missing notification details. Requesting notifications...");
-      try {
-        // According to the docs, addFrame should handle both frame addition and notification permissions
-        // Let's call it again to try to get notification details
-        const frameResult = await sdk.actions.addFrame();
-        console.log("Re-attempt addFrame result:", JSON.stringify(frameResult, null, 2));
-        
-        // Get updated context after requesting notifications
+    // If we have the frame added but no notification details, explicitly request them
+    if (isAdded && !hasNotifications && updatedContext?.user?.fid) {
+      console.log("Frame added but missing notification details. Explicitly requesting notifications...");
+      
+      // Wait a moment before requesting notifications (gives UI time to update)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Make explicit request for notification permissions
+      const notificationsEnabled = await requestNotificationPermissions();
+      
+      if (notificationsEnabled) {
+        // Update our notification details
         const notificationContext = await sdk.context;
         notificationDetails = notificationContext?.client?.notificationDetails;
         
-        console.log("Notification status after request:", 
-          notificationDetails ? "Notifications enabled" : "Notifications still disabled");
-        
+        // Update user
         if (currentUser) {
           currentUser.hasEnabledNotifications = !!notificationDetails;
         }
-      } catch (notificationError) {
-        console.error("Error requesting notification permissions:", notificationError);
       }
     }
     

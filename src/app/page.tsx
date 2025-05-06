@@ -7,7 +7,8 @@ import {
   isSignedIn, 
   AuthUser, 
   promptAddFrameAndNotifications,
-  sendWelcomeNotification
+  sendWelcomeNotification,
+  requestNotificationPermissions
 } from '@/lib/auth';
 import { sdk } from '@farcaster/frame-sdk';
 
@@ -15,6 +16,37 @@ export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingApp, setIsAddingApp] = useState(false);
+  const [isRequestingNotifications, setIsRequestingNotifications] = useState(false);
+
+  // Function to handle notification request
+  const handleRequestNotifications = async () => {
+    if (!user || isRequestingNotifications) return;
+    
+    setIsRequestingNotifications(true);
+    try {
+      console.log("Manually requesting notification permissions...");
+      const enabled = await requestNotificationPermissions();
+      
+      if (enabled && user) {
+        console.log("✅ Notifications enabled successfully!");
+        setUser({
+          ...user,
+          hasEnabledNotifications: true
+        });
+        
+        // Send welcome notification if notifications were just enabled
+        if (user.fid) {
+          await sendWelcomeNotification(user.fid);
+        }
+      } else {
+        console.log("❌ Failed to enable notifications");
+      }
+    } catch (error) {
+      console.error("Error requesting notifications:", error);
+    } finally {
+      setIsRequestingNotifications(false);
+    }
+  };
 
   // Initialize Frame SDK and handle automatic authentication
   useEffect(() => {
@@ -137,8 +169,21 @@ export default function Home() {
                 ? "✅ You've added this Mini App with notifications enabled!"
                 : "⚠️ You've added this Mini App but notifications aren't enabled."}
             </p>
+            
+            {!user.hasEnabledNotifications && (
+              <button
+                onClick={handleRequestNotifications}
+                disabled={isRequestingNotifications}
+                className="mt-2 mb-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {isRequestingNotifications ? "Requesting..." : "Enable Notifications"}
+              </button>
+            )}
+            
             <p className="text-lg mt-4">
-              Check Warpcast for your welcome notification!
+              {user.hasEnabledNotifications 
+                ? "Check Warpcast for your welcome notification!" 
+                : "Enable notifications to receive updates."}
             </p>
           </>
         ) : (
