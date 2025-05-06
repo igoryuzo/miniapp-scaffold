@@ -170,9 +170,15 @@ export default function Home() {
         {user?.hasAddedApp ? (
           <>
             <p className="text-xl mb-4">
-              {user.hasEnabledNotifications
-                ? "✅ You've added this Mini App with notifications enabled!"
-                : "⚠️ You've added this Mini App but notifications aren't enabled."}
+              <a 
+                href="https://github.com/igoryuzo/miniapp-scaffold" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 hover:underline"
+              >
+                <img src="/images/github-mark.svg" alt="GitHub" className="w-6 h-6" />
+                Star this GitHub Repo
+              </a>
             </p>
             
             {!user.hasEnabledNotifications && (
@@ -186,9 +192,7 @@ export default function Home() {
             )}
             
             <p className="text-lg mt-4">
-              {user.hasEnabledNotifications 
-                ? "Check Warpcast for your welcome notification!" 
-                : "Enable notifications to receive updates."}
+              Check Warpcast for your welcome notification!
             </p>
           </>
         ) : (
