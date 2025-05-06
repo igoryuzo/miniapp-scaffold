@@ -18,43 +18,8 @@ NEYNAR_API_KEY=your_neynar_api_key
 # Application URL (used for notification links)
 # Use localhost for development, your actual domain for production
 NEXT_PUBLIC_APP_URL=https://your-app-domain.com
-
-## Dependency Installation
-
-To recreate this project from scratch, you'll need to install the following dependencies:
-
-```bash
-# Initialize Next.js project
-yarn create next-app --typescript
-
-# Core dependencies
-yarn add next@15.3.1 react@19.0.0 react-dom@19.0.0 
-
-# Farcaster dependencies
-yarn add @farcaster/frame-sdk@0.0.37 @farcaster/auth-kit@0.6.0 @neynar/nodejs-sdk@2.33.1
-
-# Database
-yarn add @supabase/supabase-js@2.39.6
-
-# Dev dependencies
-yarn add -D typescript@5 @types/node@20 @types/react@19 @types/react-dom@19
-yarn add -D eslint@9 eslint-config-next@15.3.1 @eslint/eslintrc@3
-
-# CSS and styling
-yarn add -D tailwindcss@4 @tailwindcss/postcss@4 
 ```
 
-### PostCSS Configuration
-
-Create a `postcss.config.mjs` file in your project root with the following content:
-
-```javascript
-const config = {
-  plugins: ["@tailwindcss/postcss"],
-};
-
-export default config;
-```
 
 ```
 # Farcaster Mini App Creation Prompt
@@ -81,6 +46,42 @@ Create a Hello World Farcaster Mini App using Next.js and TypeScript, following 
 2. Instructions for setting up environment variables
 3. Database setup SQL commands
 4. Deployment guidance
+
+## Dependency Installation
+
+To recreate this project from scratch, you'll need to install the following dependencies:
+
+bash
+# Initialize Next.js project
+yarn create next-app --typescript
+
+# Core dependencies
+yarn add next@15.3.1 react@19.0.0 react-dom@19.0.0 
+
+# Farcaster dependencies
+yarn add @farcaster/frame-sdk@0.0.37 @farcaster/auth-kit@0.6.0 @neynar/nodejs-sdk@2.33.1
+
+# Database
+yarn add @supabase/supabase-js@2.39.6
+
+# Dev dependencies
+yarn add -D typescript@5 @types/node@20 @types/react@19 @types/react-dom@19
+yarn add -D eslint@9 eslint-config-next@15.3.1 @eslint/eslintrc@3
+
+# CSS and styling
+yarn add -D tailwindcss@4 @tailwindcss/postcss@4 
+
+
+### PostCSS Configuration
+
+Create a `postcss.config.mjs` file in your project root with the following content:
+
+javascript
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
 
 Use the detailed documentation below to understand the technical requirements, architecture, and implementation strategies for building the mini app.
 
