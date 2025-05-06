@@ -18,6 +18,7 @@ NEYNAR_API_KEY=your_neynar_api_key
 NEXT_PUBLIC_APP_URL=https://your-app-domain.com
 ```
 
+```
 # Farcaster Mini App Creation Prompt
 
 ## Task
@@ -452,3 +453,5 @@ This scaffold provides the foundation - here are some ways to extend it:
 The Mini App Scaffold provides a robust foundation for building Farcaster Mini Apps with authentication, notifications, and data persistence. By handling the integration complexities and boilerplate code, it allows developers to focus on building unique features and experiences for their users.
 
 This scaffold is designed to evolve along with the Farcaster ecosystem, incorporating best practices and new features as they become available.
+
+```
