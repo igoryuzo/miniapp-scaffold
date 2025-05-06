@@ -2,6 +2,8 @@
 
 A quick-start scaffold for Farcaster Mini Apps with user authentication, notifications, and data persistence using Supabase.
 
+Copy the second markdown below into your preferred LLM code editor (e.g Cursor)
+
 ```
 # Environment Variables for .env.local and Vercel
 
